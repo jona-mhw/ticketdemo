@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestionar Clínicas - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">Gestionar Clínicas</h1>
+    <p class="mb-4">Desde aquí puedes ver, crear y editar las clínicas de la red.</p>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Listado de Clínicas</h6>
+            <a href="{{ url_for('admin.create_clinic') }}" class="btn btn-primary btn-sm float-right" style="margin-top: -25px;">
+                <i class="fas fa-plus"></i> Nueva Clínica
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for clinic in clinics %}
+                        <tr>
+                            <td>{{ clinic.id }}</td>
+                            <td>{{ clinic.name }}</td>
+                            <td>
+                                {% if clinic.is_active %}
+                                    <span class="badge badge-success">Activa</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Inactiva</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin.edit_clinic', clinic_id=clinic.id) }}" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

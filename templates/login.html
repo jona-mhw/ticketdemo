@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar Sesión - Ticket Home{% endblock %}
+
+{% block login_content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl w-full space-y-8">
+        <div>
+            <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-primary">
+                <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Ticket Home
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Sistema de Gestión de Altas Hospitalarias
+            </p>
+        </div>
+        
+        <div class="flex flex-col md:flex-row gap-8">
+            <form class="mt-8 space-y-6 flex-1" method="POST">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="username" class="sr-only">Usuario</label>
+                        <input id="username" name="username" type="text" required 
+                               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm" 
+                               placeholder="Usuario" value="{{ request.form.username }}">
+                    </div>
+                    <div>
+                        <label for="password" class="sr-only">Contraseña</label>
+                        <input id="password" name="password" type="password" required 
+                               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm" 
+                               placeholder="Contraseña">
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" 
+                            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                            <svg class="h-5 w-5 text-white group-hover:text-gray-100" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </span>
+                        Iniciar Sesión
+                    </button>
+                </div>
+            </form>
+
+            <div class="flex-1 mt-8 bg-gray-100 p-6 rounded-lg shadow-inner">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 text-center">Credenciales para Demo</h3>
+                <p class="text-center text-sm text-gray-600 mb-4">La contraseña para todos los usuarios es: <strong class="text-primary">password123</strong></p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clínica</th>
+                                <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario Admin</th>
+                                <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario Clínico</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% set clinics = {
+                                'Iquique': 'iqui',
+                                'Elqui': 'elqu',
+                                'Valparaíso': 'valp',
+                                'Providencia': 'prov',
+                                'Santiago': 'sant',
+                                'Vitacura': 'vita',
+                                'Rancagua': 'ranc',
+                                'Temuco': 'temu',
+                                'Magallanes': 'maga'
+                            } %}
+                            {% for name, prefix in clinics.items() %}
+                            <tr>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{{ name }}</td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">admin_{{ prefix }}</td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">clinical_{{ prefix }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

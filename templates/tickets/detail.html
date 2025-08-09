@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket {{ ticket.id }} - Ticket Home{% endblock %}
+{% block page_title %}Detalle del Ticket {{ ticket.id }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header Actions -->
+    <div class="flex justify-between items-center">
+        <a href="{{ url_for('tickets.list') }}" 
+           class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Volver al listado
+        </a>
+        
+        <div class="flex space-x-3">
+            <!-- Export PDF button -->
+            <a href="{{ url_for('tickets.export_pdf', ticket_id=ticket.id) }}" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+                Exportar e Imprimir
+            </a>
+        </div>
+    </div>
+
+    <!-- Ticket Status and Basic Info -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-medium text-gray-900">Información del Ticket</h3>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                {% if ticket.status == 'Vigente' %}bg-blue-100 text-blue-800
+                {% elif ticket.status == 'Cerrado' %}bg-green-100 text-green-800
+                {% else %}bg-red-100 text-red-800{% endif %}">
+                {{ ticket.status }}
+            </span>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div>
+                <dt class="text-sm font-medium text-gray-500">ID del Ticket</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900">{{ ticket.id }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Creado por</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.created_by }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Fecha de creación</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">FPA Inicial</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.initial_fpa.strftime('%d/%m/%Y %H:%M') }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">FPA Actual</dt>
+                <dd class="mt-1 text-sm font-semibold {% if ticket.current_fpa != ticket.initial_fpa %}text-orange-600{% else %}text-gray-900{% endif %}">
+                    {{ ticket.current_fpa.strftime('%d/%m/%Y %H:%M') }}
+                    {% if ticket.get_modification_count() > 0 %}
+                    <span class="text-xs text-orange-600">({{ ticket.get_modification_count() }} modificación(es))</span>
+                    {% endif %}
+                </dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Noches de estancia</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.overnight_stays }}</dd>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Information -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Información del Paciente</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Nombre</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.patient.full_name }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">RUT</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.patient.rut }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Edad</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.patient.age }} años</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Sexo</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                    {% if ticket.patient.sex == 'Male' %}Masculino
+                    {% elif ticket.patient.sex == 'Female' %}Femenino
+                    {% else %}{{ ticket.patient.sex }}{% endif %}
+                </dd>
+            </div>
+            
+            {% if ticket.patient.episode_id %}
+            <div class="md:col-span-2">
+                <dt class="text-sm font-medium text-gray-500">ID del Episodio</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.patient.episode_id }}</dd>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Surgery Information -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Información Quirúrgica</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Cirugía</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.surgery.name }}</dd>
+                <dd class="text-xs text-gray-500">{{ ticket.surgery.specialty }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Técnica</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.technique.name }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Médico Tratante</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.attending_doctor.name if ticket.attending_doctor else 'No asignado' }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Término en Pabellón</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.pavilion_end_time.strftime('%d/%m/%Y %H:%M') }}</dd>
+            </div>
+            
+            {% if adjustment_details %}
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Criterios de Ajuste</dt>
+                <dd class="mt-1">
+                    {% for adjustment in adjustment_details %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mr-2 mb-1">
+                        {{ adjustment.name }} ({% if adjustment.hours_adjustment >= 0 %}+{% endif %}{{ adjustment.hours_adjustment }}h)
+                    </span>
+                    {% endfor %}
+                </dd>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Actions (only if ticket can be modified) -->
+    {% if ticket.can_be_modified() %}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Modify FPA -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <h4 class="text-md font-medium text-gray-900 mb-4">Modificar FPA</h4>
+            <form method="POST" action="{{ url_for('tickets.modify_fpa', ticket_id=ticket.id) }}">
+                <div class="space-y-4">
+                    <div>
+                        <label for="new_fpa" class="block text-sm font-medium text-gray-700 mb-1">Nueva FPA</label>
+                        <input type="datetime-local" id="new_fpa" name="new_fpa" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                    </div>
+                    
+                    <div>
+                        <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Razón</label>
+                        <select id="reason" name="reason" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Seleccionar razón</option>
+                            {% for reason in modification_reasons %}
+                            <option value="{{ reason.reason }}">{{ reason.reason }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="justification" class="block text-sm font-medium text-gray-700 mb-1">Justificación (opcional)</label>
+                        <textarea id="justification" name="justification" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                                  placeholder="Detalles adicionales..."></textarea>
+                    </div>
+                    
+                    <button type="submit" 
+                            class="w-full bg-warning hover:bg-opacity-90 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        Modificar FPA
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Close Ticket -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <h4 class="text-md font-medium text-gray-900 mb-4">Cerrar Ticket</h4>
+            <form method="POST" action="{{ url_for('tickets.close_ticket', ticket_id=ticket.id) }}">
+                <div class="space-y-4">
+                    <div>
+                        <label for="actual_discharge_date" class="block text-sm font-medium text-gray-700 mb-1">Fecha Real de Alta</label>
+                        <input type="datetime-local" id="actual_discharge_date" name="actual_discharge_date" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                    </div>
+                    
+                    <div>
+                        <label for="closed_reason" class="block text-sm font-medium text-gray-700 mb-1">Razón de Cierre</label>
+                        <select id="closed_reason" name="closed_reason" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Seleccionar razón</option>
+                            {% for reason in non_compliance_reasons %}
+                            <option value="{{ reason.reason }}">{{ reason.reason }}</option>
+                            {% endfor %}
+                            <option value="Alta médica normal">Alta médica normal</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" 
+                            class="w-full bg-success hover:bg-opacity-90 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        Cerrar Ticket
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Annul Ticket -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <h4 class="text-md font-medium text-gray-900 mb-4">Anular Ticket</h4>
+            <form method="POST" action="{{ url_for('tickets.annul_ticket', ticket_id=ticket.id) }}">
+                <div class="space-y-4">
+                    <div>
+                        <label for="annulled_reason" class="block text-sm font-medium text-gray-700 mb-1">Razón de Anulación</label>
+                        <select id="annulled_reason" name="annulled_reason" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Seleccionar razón</option>
+                            {% for reason in annulment_reasons %}
+                            <option value="{{ reason.reason }}">{{ reason.reason }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <button type="submit" 
+                            onclick="return confirm('¿Está seguro que desea anular este ticket? Esta acción no se puede deshacer.')"
+                            class="w-full bg-danger hover:bg-opacity-90 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        Anular Ticket
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Modification History -->
+    {% if ticket.modifications %}
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Historial de Modificaciones</h3>
+        
+        <div class="space-y-4">
+            {% for modification in ticket.modifications %}
+            <div class="border-l-4 border-orange-400 bg-orange-50 p-4">
+                <div class="flex">
+                    <div class="flex-1">
+                        <p class="text-sm text-gray-900">
+                            <strong>{{ modification.modified_by }}</strong> modificó la FPA
+                            el {{ modification.modified_at.strftime('%d/%m/%Y %H:%M') }}
+                        </p>
+                        <p class="text-sm text-gray-600 mt-1">
+                            <strong>De:</strong> {{ modification.previous_fpa.strftime('%d/%m/%Y %H:%M') }}
+                            <strong>A:</strong> {{ modification.new_fpa.strftime('%d/%m/%Y %H:%M') }}
+                        </p>
+                        <p class="text-sm text-gray-600">
+                            <strong>Razón:</strong> {{ modification.reason }}
+                        </p>
+                        {% if modification.justification %}
+                        <p class="text-sm text-gray-600">
+                            <strong>Justificación:</strong> {{ modification.justification }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Closure/Annulment Information -->
+    {% if ticket.status in ['Cerrado', 'Anulado'] %}
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">
+            {% if ticket.status == 'Cerrado' %}Información de Cierre{% else %}Información de Anulación{% endif %}
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% if ticket.status == 'Cerrado' %}
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Fecha de Cierre</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.closed_at.strftime('%d/%m/%Y %H:%M') if ticket.closed_at else 'N/A' }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Fecha Real de Alta</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.actual_discharge_date.strftime('%d/%m/%Y %H:%M') if ticket.actual_discharge_date else 'N/A' }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Estado de Cumplimiento</dt>
+                <dd class="mt-1">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if ticket.compliance_status == 'compliant' %}bg-green-100 text-green-800
+                        {% else %}bg-red-100 text-red-800{% endif %}">
+                        {% if ticket.compliance_status == 'compliant' %}Cumplió FPA{% else %}No Cumplió FPA{% endif %}
+                    </span>
+                </dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Razón de Cierre</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.closed_reason or 'N/A' }}</dd>
+            </div>
+            {% else %}
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Fecha de Anulación</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.annulled_at.strftime('%d/%m/%Y %H:%M') if ticket.annulled_at else 'N/A' }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Anulado por</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.annulled_by or 'N/A' }}</dd>
+            </div>
+            
+            <div class="md:col-span-2">
+                <dt class="text-sm font-medium text-gray-500">Razón de Anulación</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.annulled_reason or 'N/A' }}</dd>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Set default values for date inputs
+document.addEventListener('DOMContentLoaded', function() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const dateString = now.toISOString().slice(0, 16);
+    
+    const actualDischargeInput = document.getElementById('actual_discharge_date');
+    if (actualDischargeInput) {
+        actualDischargeInput.value = dateString;
+    }
+    
+    const newFpaInput = document.getElementById('new_fpa');
+    if (newFpaInput) {
+        newFpaInput.value = dateString;
+    }
+});
+</script>
+{% endblock %}

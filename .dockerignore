@@ -1,0 +1,16 @@
+
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Instancia local
+instance/
+markdowns-jona/
+otros-jona/

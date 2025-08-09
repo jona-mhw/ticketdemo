@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Administración - Ticket Home{% endblock %}
+{% block page_title %}Administración{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-6">Panel de Administración de {{ current_user.clinic.name }}</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Users -->
+            <a href="{{ url_for('admin.users') }}" class="block p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                <h3 class="text-xl font-semibold text-gray-700">Usuarios</h3>
+                <p class="text-3xl font-bold text-teal-500">{{ stats.users }}</p>
+            </a>
+            <!-- Doctors -->
+            <a href="{{ url_for('admin.master_data') }}" class="block p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                <h3 class="text-xl font-semibold text-gray-700">Médicos</h3>
+                <p class="text-3xl font-bold text-teal-500">{{ stats.doctors }}</p>
+            </a>
+            <!-- Master Data -->
+            <a href="{{ url_for('admin.master_data') }}" class="block p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                <h3 class="text-xl font-semibold text-gray-700">Datos Maestros</h3>
+                <p class="text-sm text-gray-500">Cirugías, Técnicas, etc.</p>
+            </a>
+            <!-- Clinics -->
+            <a href="{{ url_for('admin.clinics') }}" class="block p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                <h3 class="text-xl font-semibold text-gray-700">Clínicas</h3>
+                <p class="text-3xl font-bold text-teal-500">{{ stats.clinics }}</p>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if clinic %}Editar Clínica{% else %}Crear Clínica{% endif %} - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">{% if clinic %}Editar Clínica{% else %}Crear Nueva Clínica{% endif %}</h1>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Detalles de la Clínica</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{% if clinic %}{{ url_for('admin.edit_clinic', clinic_id=clinic.id) }}{% else %}{{ url_for('admin.create_clinic') }}{% endif %}">
+                <div class="form-group">
+                    <label for="name">Nombre de la Clínica</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ clinic.name if clinic else '' }}" required>
+                </div>
+                
+                {% if clinic %}
+                <div class="form-group">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="is_active" name="is_active" {% if clinic.is_active %}checked{% endif %}>
+                        <label class="custom-control-label" for="is_active">Activa</label>
+                    </div>
+                </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-primary">{% if clinic %}Actualizar{% else %}Crear{% endif %}</button>
+                <a href="{{ url_for('admin.clinics') }}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

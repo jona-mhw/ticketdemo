@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Ticket - Ticket Home{% endblock %}
+{% block page_title %}Crear Ticket Home{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <form method="POST" class="space-y-8">
+        <!-- Patient Information -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-6">Información del Paciente</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="rut" class="block text-sm font-medium text-gray-700 mb-1">
+                        RUT <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="rut" name="rut" required
+                           placeholder="12.345.678-9"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                </div>
+                
+                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="primer_nombre" class="block text-sm font-medium text-gray-700 mb-1">
+                            Primer Nombre <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="primer_nombre" name="primer_nombre" required
+                               placeholder="Juan"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <label for="segundo_nombre" class="block text-sm font-medium text-gray-700 mb-1">
+                            Segundo Nombre
+                        </label>
+                        <input type="text" id="segundo_nombre" name="segundo_nombre"
+                               placeholder="Carlos"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <label for="apellido_paterno" class="block text-sm font-medium text-gray-700 mb-1">
+                            Apellido Paterno <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="apellido_paterno" name="apellido_paterno" required
+                               placeholder="Pérez"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <label for="apellido_materno" class="block text-sm font-medium text-gray-700 mb-1">
+                            Apellido Materno
+                        </label>
+                        <input type="text" id="apellido_materno" name="apellido_materno"
+                               placeholder="González"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="age" class="block text-sm font-medium text-gray-700 mb-1">
+                        Edad <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" id="age" name="age" required min="0" max="120"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                </div>
+                
+                <div>
+                    <label for="sex" class="block text-sm font-medium text-gray-700 mb-1">
+                        Sexo <span class="text-red-500">*</span>
+                    </label>
+                    <select id="sex" name="sex" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                        <option value="">Seleccionar sexo</option>
+                        <option value="Male">Masculino</option>
+                        <option value="Female">Femenino</option>
+                        <option value="Other">Otro</option>
+                    </select>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label for="episode_id" class="block text-sm font-medium text-gray-700 mb-1">
+                        ID del Episodio
+                    </label>
+                    <input type="text" id="episode_id" name="episode_id"
+                           placeholder="Identificador único del episodio hospitalario"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                    <p class="mt-1 text-sm text-gray-500">Opcional. Se valida que no exista otro ticket vigente para el mismo episodio.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Surgery Information -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-6">Información Quirúrgica</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="surgery_id" class="block text-sm font-medium text-gray-700 mb-1">
+                        Cirugía <span class="text-red-500">*</span>
+                    </label>
+                    <select id="surgery_id" name="surgery_id" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                        <option value="">Seleccionar cirugía</option>
+                        {% for surgery in surgeries %}
+                        <option value="{{ surgery.id }}">{{ surgery.name }} ({{ surgery.specialty }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="technique_id" class="block text-sm font-medium text-gray-700 mb-1">
+                        Técnica Quirúrgica <span class="text-red-500">*</span>
+                    </label>
+                    <select id="technique_id" name="technique_id" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                        <option value="">Primero seleccione una cirugía</option>
+                    </select>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label for="pavilion_end_time" class="block text-sm font-medium text-gray-700 mb-1">
+                        Fecha y Hora de Término en Pabellón <span class="text-red-500">*</span>
+                    </label>
+                    <input type="datetime-local" id="pavilion_end_time" name="pavilion_end_time" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                </div>
+
+                <div>
+                    <label for="doctor_id" class="block text-sm font-medium text-gray-700 mb-1">Médico Tratante</label>
+                    <select id="doctor_id" name="doctor_id"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                        <option value="">Seleccione un médico (opcional)</option>
+                        {% for doctor in doctors %}
+                        <option value="{{ doctor.id }}">{{ doctor.name }} - {{ doctor.specialty }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="discharge_slot_id" class="block text-sm font-medium text-gray-700 mb-1">Bloque Horario de Alta</label>
+                    <select id="discharge_slot_id" name="discharge_slot_id"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                        <option value="">Seleccione un bloque (opcional)</option>
+                        {% for slot in discharge_slots %}
+                        <option value="{{ slot.id }}">{{ slot.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stay Adjustments -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-6">Criterios de Ajuste de Estancia</h3>
+            <p class="text-sm text-gray-600 mb-4">Seleccione los factores que pueden afectar el tiempo de estancia del paciente:</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for adjustment in adjustments %}
+                <div class="flex items-center">
+                    <input type="checkbox" id="adjustment_{{ adjustment.id }}" name="adjustment_ids" value="{{ adjustment.id }}"
+                           class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                    <label for="adjustment_{{ adjustment.id }}" class="ml-2 block text-sm text-gray-900">
+                        {{ adjustment.name }}
+                        <span class="text-xs text-gray-500">
+                            ({% if adjustment.hours_adjustment >= 0 %}+{% endif %}{{ adjustment.hours_adjustment }}h)
+                        </span>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- FPA Preview -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 class="text-lg font-medium text-blue-900 mb-4">Preview de FPA</h3>
+            <div id="fpa-preview" class="text-sm text-blue-800">
+                <p>Complete la información quirúrgica para ver el cálculo estimado de FPA.</p>
+            </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="flex justify-end space-x-4">
+            <a href="{{ url_for('tickets.list') }}" 
+               class="px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Cancelar
+            </a>
+            <button type="submit" 
+                    class="px-6 py-2 bg-primary hover:bg-opacity-90 text-white rounded-md text-sm font-medium">
+                Crear Ticket
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const surgerySelect = document.getElementById('surgery_id');
+    const techniqueSelect = document.getElementById('technique_id');
+    const pavilionEndTimeInput = document.getElementById('pavilion_end_time');
+    const adjustmentCheckboxes = document.querySelectorAll('input[name="adjustment_ids"]');
+    const fpaPreview = document.getElementById('fpa-preview');
+    
+    // Store techniques data
+    const allTechniques = {{ techniques_json | tojson }};
+    
+    // Update techniques when surgery changes
+    surgerySelect.addEventListener('change', function() {
+        const surgeryId = parseInt(this.value);
+        techniqueSelect.innerHTML = '<option value="">Seleccionar técnica</option>';
+        
+        if (surgeryId) {
+            const surgeryTechniques = allTechniques.filter(t => t.surgery_id === surgeryId);
+            surgeryTechniques.forEach(technique => {
+                const option = new Option(
+                    `${technique.name} (${technique.base_stay_hours}h base)`, 
+                    technique.id
+                );
+                techniqueSelect.add(option);
+            });
+        }
+        
+        updateFpaPreview();
+    });
+    
+    // Update FPA preview when relevant fields change
+    [techniqueSelect, pavilionEndTimeInput, ...adjustmentCheckboxes].forEach(element => {
+        element.addEventListener('change', updateFpaPreview);
+    });
+    
+    function updateFpaPreview() {
+        const surgeryId = parseInt(surgerySelect.value);
+        const techniqueId = parseInt(techniqueSelect.value);
+        const pavilionEndTime = pavilionEndTimeInput.value;
+        
+        if (!surgeryId || !techniqueId || !pavilionEndTime) {
+            fpaPreview.innerHTML = '<p>Complete la información quirúrgica para ver el cálculo estimado de FPA.</p>';
+            return;
+        }
+        
+        // Find selected technique
+        const selectedTechnique = allTechniques.find(t => t.id === techniqueId);
+        if (!selectedTechnique) return;
+        
+        // Calculate adjustment hours
+        let adjustmentHours = 0;
+        const selectedAdjustments = [];
+        adjustmentCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                const adjustmentData = {{ adjustments_json | tojson }}.find(a => a.id === parseInt(checkbox.value));
+                if (adjustmentData) {
+                    adjustmentHours += adjustmentData.hours_adjustment;
+                    selectedAdjustments.push(adjustmentData);
+                }
+            }
+        });
+        
+        // Calculate FPA
+        const baseHours = selectedTechnique.base_stay_hours;
+        const totalHours = baseHours + adjustmentHours;
+        const pavilionEnd = new Date(pavilionEndTime);
+        const fpa = new Date(pavilionEnd.getTime() + (totalHours * 60 * 60 * 1000));
+        
+        // Calculate overnight stays
+        const timeDiff = fpa - pavilionEnd;
+        const overnightStays = Math.max(0, Math.ceil(timeDiff / (24 * 60 * 60 * 1000)));
+        
+        // Update preview
+        let html = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p><strong>Horas base de técnica:</strong> ${baseHours}h</p>
+                    <p><strong>Ajustes aplicados:</strong> ${adjustmentHours >= 0 ? '+' : ''}${adjustmentHours}h</p>
+                    <p><strong>Total de horas:</strong> ${totalHours}h</p>
+                </div>
+                <div>
+                    <p><strong>Término en pabellón:</strong> ${pavilionEnd.toLocaleString('es-CL')}</p>
+                    <p><strong>FPA calculada:</strong> ${fpa.toLocaleString('es-CL')}</p>
+                    <p><strong>Noches de estancia:</strong> ${overnightStays}</p>
+                </div>
+            </div>
+        `;
+        
+        if (selectedAdjustments.length > 0) {
+            html += `
+                <div class="mt-4">
+                    <p><strong>Criterios de ajuste aplicados:</strong></p>
+                    <ul class="list-disc list-inside mt-1">
+                        ${selectedAdjustments.map(adj => 
+                            `<li>${adj.name} (${adj.hours_adjustment >= 0 ? '+' : ''}${adj.hours_adjustment}h)</li>`
+                        ).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+        
+        fpaPreview.innerHTML = html;
+    }
+    
+    // Set default date to current time
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    pavilionEndTimeInput.value = now.toISOString().slice(0, 16);
+    
+    updateFpaPreview();
+});
+</script>
+{% endblock %}

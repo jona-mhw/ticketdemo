@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+
+{% block title %}Listado de Tickets - Ticket Home{% endblock %}
+{% block page_title %}Listado de Tickets{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Filters -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <form method="GET" class="space-y-4">
+            <!-- First row of filters -->
+            <div class="flex flex-wrap gap-4">
+                <div class="flex-1 min-w-64">
+                    <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                    <input type="text" id="search" name="search" value="{{ search_query }}"
+                           placeholder="ID, nombre del paciente o RUT"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                </div>
+                <div class="min-w-48">
+                    <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                    <select id="status" name="status" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                        <option value="">Todos los estados</option>
+                        <option value="Vigente" {% if status_filter == 'Vigente' %}selected{% endif %}>Vigente</option>
+                        <option value="Cerrado" {% if status_filter == 'Cerrado' %}selected{% endif %}>Cerrado</option>
+                        <option value="Anulado" {% if status_filter == 'Anulado' %}selected{% endif %}>Anulado</option>
+                    </select>
+                </div>
+                <div class="min-w-48">
+                    <label for="surgery" class="block text-sm font-medium text-gray-700 mb-1">Cirugía</label>
+                    <select id="surgery" name="surgery" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                        <option value="">Todas las cirugías</option>
+                        {% for surgery in surgeries %}
+                        <option value="{{ surgery.id }}" {% if surgery_filter == surgery.id|string %}selected{% endif %}>
+                            {{ surgery.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Second row of filters -->
+            <div class="flex flex-wrap gap-4">
+                <div class="min-w-40">
+                    <label for="date_from" class="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+                    <input type="date" id="date_from" name="date_from" value="{{ date_from }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                </div>
+                <div class="min-w-40">
+                    <label for="date_to" class="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+                    <input type="date" id="date_to" name="date_to" value="{{ date_to }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                </div>
+                <div class="min-w-48">
+                    <label for="compliance" class="block text-sm font-medium text-gray-700 mb-1">Cumplimiento FPA</label>
+                    <select id="compliance" name="compliance" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                        <option value="">Todos</option>
+                        <option value="compliant" {% if compliance_filter == 'compliant' %}selected{% endif %}>Cumplió</option>
+                        <option value="non_compliant" {% if compliance_filter == 'non_compliant' %}selected{% endif %}>No Cumplió</option>
+                    </select>
+                </div>
+                <div class="flex items-end gap-2">
+                    <button type="submit" 
+                            class="bg-primary hover:bg-opacity-90 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        Filtrar
+                    </button>
+                    <a href="{{ url_for('tickets.list') }}" 
+                       class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        Limpiar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tickets Table -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h3 class="text-lg font-medium text-gray-900">
+                    Tickets ({{ tickets|length }} resultados)
+                </h3>
+                <div class="flex flex-wrap gap-2">
+                    <!-- Column visibility dropdown -->
+                    <div x-data="{ open: false }">
+                        <button @click="open = !open" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M3 3a1 1 0 000 2h14a1 1 0 100-2H3zm0 4a1 1 0 000 2h14a1 1 0 100-2H3zm0 4a1 1 0 000 2h14a1 1 0 100-2H3zm0 4a1 1 0 000 2h14a1 1 0 100-2H3z"></path></svg>
+                            Columnas
+                        </button>
+                        <div x-show="open" @click.away="open = false" class="absolute mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                            <div id="column-toggles" class="py-1">
+                                <!-- Checkboxes will be inserted here by JS -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Export buttons -->
+                    {% if tickets %}
+                    <div class="flex gap-2">
+                        <a href="{{ url_for('tickets.export_excel') }}{% if request.args %}?{{ request.query_string.decode() }}{% endif %}" 
+                           class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                            Excel
+                        </a>
+                        
+                    </div>
+                    {% endif %}
+                    <a href="{{ url_for('tickets.create') }}" 
+                       class="bg-primary hover:bg-opacity-90 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        Crear Nuevo Ticket
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        {% if tickets %}
+        <div class="overflow-x-auto">
+            <table id="tickets-table" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="ID Ticket" data-sort-key="id">
+                            ID Ticket
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Paciente" data-sort-key="patient">Paciente</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Médico Tratante" data-sort-key="doctor">Médico Tratante</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Cirugía" data-sort-key="surgery">Cirugía</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="FPA Actual" data-sort-key="fpa">
+                            FPA Actual
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Horas Restantes">
+                            Horas Restantes
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Estado" data-sort-key="status">
+                            Estado
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Creado" data-sort-key="created_at">
+                            Creado
+                        </th>
+                        <th scope="col" class="relative px-6 py-3" data-column-name="Acciones">
+                            <span class="sr-only">Acciones</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for ticket in tickets %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap" data-column-name="ID Ticket">
+                            <div class="text-sm font-medium text-gray-900">{{ ticket.id }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap" data-column-name="Paciente">
+                            <div class="text-sm font-medium text-gray-900">{{ ticket.patient.full_name }}</div>
+                            <div class="text-sm text-gray-500">{{ ticket.patient.rut }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap" data-column-name="Médico Tratante">
+                            <div class="text-sm text-gray-900">{{ ticket.attending_doctor.name if ticket.attending_doctor else 'N/A' }}</div>
+                            <div class="text-sm text-gray-500">{{ ticket.attending_doctor.specialty if ticket.attending_doctor else '' }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap" data-column-name="Cirugía">
+                            <div class="text-sm text-gray-900">{{ ticket.surgery.name }}</div>
+                            <div class="text-sm text-gray-500">{{ ticket.surgery.specialty }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap" data-column-name="FPA Actual">
+                            <div class="text-sm text-gray-900">{{ ticket.current_fpa.strftime('%d/%m/%Y %H:%M') }}</div>
+                            {% if ticket.get_modification_count() > 0 %}
+                            <div class="text-xs text-orange-600">{{ ticket.get_modification_count() }} modificación(es)</div>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap" data-column-name="Horas Restantes">
+                            {% if ticket.status == 'Vigente' and ticket.current_fpa %}
+                                <span class="countdown-timer text-sm font-medium"
+                                      data-fpa="{{ ticket.current_fpa.isoformat() }}">
+                                    <!-- El tiempo restante se calculará aquí -->
+                                </span>
+                            {% else %}
+                                <span class="text-sm text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap" data-column-name="Estado">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if ticket.status == 'Vigente' %}bg-blue-100 text-blue-800
+                                {% elif ticket.status == 'Cerrado' %}bg-green-100 text-green-800
+                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ ticket.status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-column-name="Creado">
+                            {{ ticket.created_at.strftime('%d/%m/%Y') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" data-column-name="Acciones">
+                            <a href="{{ url_for('tickets.detail', ticket_id=ticket.id) }}" 
+                               class="text-primary hover:text-opacity-80">Ver detalle</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="px-6 py-12 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No hay tickets</h3>
+            <p class="mt-1 text-sm text-gray-500">
+                {% if search_query or status_filter %}
+                No se encontraron tickets que coincidan con los filtros aplicados.
+                {% else %}
+                Comienza creando tu primer ticket.
+                {% endif %}
+            </p>
+            {% if not search_query and not status_filter %}
+            <div class="mt-6">
+                <a href="{{ url_for('tickets.create') }}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-opacity-90">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                    </svg>
+                    Crear Ticket
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Column Visibility
+    const table = document.getElementById('tickets-table');
+    const columnToggles = document.getElementById('column-toggles');
+    const headers = table.querySelectorAll('thead th');
+    const columnNames = Array.from(headers).map(th => th.dataset.columnName).filter(Boolean);
+
+    columnNames.forEach((name, index) => {
+        const colIndex = Array.from(headers).findIndex(h => h.dataset.columnName === name);
+        
+        const label = document.createElement('label');
+        label.className = 'flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'mr-2';
+        checkbox.checked = true;
+        checkbox.dataset.columnIndex = colIndex;
+
+        checkbox.addEventListener('change', (e) => {
+            const idx = e.target.dataset.columnIndex;
+            const cells = table.querySelectorAll(`th:nth-child(${parseInt(idx) + 1}), td:nth-child(${parseInt(idx) + 1})`);
+            cells.forEach(cell => {
+                cell.style.display = e.target.checked ? '' : 'none';
+            });
+        });
+
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(name));
+        columnToggles.appendChild(label);
+    });
+
+    // 2. Table Sorting
+    headers.forEach(header => {
+        if (header.dataset.sortKey) {
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', () => {
+                const sortKey = header.dataset.sortKey;
+                const currentUrl = new URL(window.location.href);
+                const currentSort = currentUrl.searchParams.get('sort_by');
+                const currentOrder = currentUrl.searchParams.get('sort_order') || 'asc';
+                
+                let newOrder = 'asc';
+                if (currentSort === sortKey && currentOrder === 'asc') {
+                    newOrder = 'desc';
+                }
+                
+                currentUrl.searchParams.set('sort_by', sortKey);
+                currentUrl.searchParams.set('sort_order', newOrder);
+                window.location.href = currentUrl.toString();
+            });
+        }
+    });
+
+    // 3. Real-time Countdown Timers
+    const countdownTimers = document.querySelectorAll('.countdown-timer');
+
+    function updateTimers() {
+        countdownTimers.forEach(timer => {
+            const fpaString = timer.dataset.fpa;
+            if (!fpaString) return;
+
+            const fpaDate = new Date(fpaString);
+            const now = new Date();
+            let totalSeconds = Math.floor((fpaDate - now) / 1000);
+
+            if (totalSeconds < 0) {
+                timer.textContent = 'Vencido';
+                timer.className = 'countdown-timer text-sm font-medium text-red-600';
+                return;
+            }
+
+            let days = Math.floor(totalSeconds / (3600 * 24));
+            totalSeconds %= (3600 * 24);
+            let hours = Math.floor(totalSeconds / 3600);
+            totalSeconds %= 3600;
+            let minutes = Math.floor(totalSeconds / 60);
+            let seconds = totalSeconds % 60;
+
+            let displayText = '';
+            if (days > 0) {
+                displayText += `${days}d `;
+            }
+            displayText += `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            timer.textContent = displayText;
+
+            let colorClass = 'text-orange-600'; // Default for < 1 hour
+            const totalHours = (days * 24) + hours;
+            if (totalHours > 24) {
+                colorClass = 'text-green-600';
+            } else if (totalHours > 1) {
+                colorClass = 'text-yellow-600';
+            }
+            timer.className = `countdown-timer text-sm font-medium ${colorClass}`;
+        });
+    }
+
+    if (countdownTimers.length > 0) {
+        setInterval(updateTimers, 1000);
+        updateTimers(); // Initial call
+    }
+});
+</script>
+{% endblock %}
