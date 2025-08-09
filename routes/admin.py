@@ -83,6 +83,21 @@ def edit_clinic(clinic_id):
                 flash(f'Error al actualizar la clínica: {str(e)}', 'error')
     return render_template('admin/clinic_form.html', clinic=clinic)
 
+@admin_bp.route('/clinics/<int:clinic_id>/toggle', methods=['POST'])
+@login_required
+@admin_required
+def toggle_clinic(clinic_id):
+    clinic = Clinic.query.get_or_404(clinic_id)
+    try:
+        clinic.is_active = not clinic.is_active
+        db.session.commit()
+        status = "activada" if clinic.is_active else "desactivada"
+        flash(f'Clínica {clinic.name} {status} exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al cambiar el estado de la clínica: {str(e)}', 'error')
+    return redirect(url_for('admin.clinics'))
+
 @admin_bp.route('/users')
 @login_required
 @admin_required
@@ -169,4 +184,193 @@ def master_data():
                          reasons=reasons,
                          doctors=doctors)
 
-# ... (The rest of the routes remain the same)
+# Master Data Management
+@admin_bp.route('/master-data/surgery', methods=['POST'])
+@login_required
+@admin_required
+def create_surgery():
+    try:
+        name = request.form.get('name', '').strip()
+        specialty = request.form.get('specialty', '').strip()
+        if not name or not specialty:
+            flash('Nombre y especialidad son obligatorios.', 'error')
+        else:
+            surgery = Surgery(name=name, specialty=specialty, clinic_id=current_user.clinic_id)
+            db.session.add(surgery)
+            db.session.commit()
+            flash('Cirugía creada exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al crear cirugía: {str(e)}', 'error')
+    return redirect(url_for('admin.master_data'))
+
+@admin_bp.route('/master-data/surgery/<int:surgery_id>/toggle', methods=['POST'])
+@login_required
+@admin_required
+def toggle_surgery(surgery_id):
+    surgery = Surgery.query.get_or_404(surgery_id)
+    if surgery.clinic_id != current_user.clinic_id:
+        flash('No tiene permisos para modificar esta cirugía.', 'error')
+        return redirect(url_for('admin.master_data'))
+    try:
+        surgery.is_active = not surgery.is_active
+        db.session.commit()
+        status = "activada" if surgery.is_active else "desactivada"
+        flash(f'Cirugía {surgery.name} {status} exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al cambiar estado de la cirugía: {str(e)}', 'error')
+    return redirect(url_for('admin.master_data'))
+
+@admin_bp.route('/master-data/technique', methods=['POST'])
+@login_required
+@admin_required
+def create_technique():
+    try:
+        name = request.form.get('name', '').strip()
+        base_stay_hours = request.form.get('base_stay_hours', type=int)
+        surgery_id = request.form.get('surgery_id', type=int)
+        if not name or not base_stay_hours or not surgery_id:
+            flash('Todos los campos son obligatorios.', 'error')
+        else:
+            technique = Technique(name=name, base_stay_hours=base_stay_hours, surgery_id=surgery_id, clinic_id=current_user.clinic_id)
+            db.session.add(technique)
+            db.session.commit()
+            flash('Técnica creada exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al crear técnica: {str(e)}', 'error')
+    return redirect(url_for('admin.master_data'))
+
+@admin_bp.route('/master-data/technique/<int:technique_id>/toggle', methods=['POST'])
+@login_required
+@admin_required
+def toggle_technique(technique_id):
+    technique = Technique.query.get_or_404(technique_id)
+    if technique.clinic_id != current_user.clinic_id:
+        flash('No tiene permisos para modificar esta técnica.', 'error')
+        return redirect(url_for('admin.master_data'))
+    try:
+        technique.is_active = not technique.is_active
+        db.session.commit()
+        status = "activada" if technique.is_active else "desactivada"
+        flash(f'Técnica {technique.name} {status} exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al cambiar estado de la técnica: {str(e)}', 'error')
+    return redirect(url_for('admin.master_data'))
+
+@admin_bp.route('/master-data/adjustment', methods=['POST'])
+@login_required
+@admin_required
+def create_adjustment():
+    try:
+        name = request.form.get('name', '').strip()
+        hours_adjustment = request.form.get('hours_adjustment', type=int)
+        category = request.form.get('category', '').strip()
+        if not name or not hours_adjustment or not category:
+            flash('Todos los campos son obligatorios.', 'error')
+        else:
+            adjustment = StayAdjustmentCriterion(name=name, hours_adjustment=hours_adjustment, category=category, clinic_id=current_user.clinic_id)
+            db.session.add(adjustment)
+            db.session.commit()
+            flash('Criterio de ajuste creado exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al crear criterio de ajuste: {str(e)}', 'error')
+    return redirect(url_for('admin.master_data'))
+
+@admin_bp.route('/master-data/adjustment/<int:adjustment_id>/toggle', methods=['POST'])
+@login_required
+@admin_required
+def toggle_adjustment(adjustment_id):
+    adjustment = StayAdjustmentCriterion.query.get_or_404(adjustment_id)
+    if adjustment.clinic_id != current_user.clinic_id:
+        flash('No tiene permisos para modificar este criterio.', 'error')
+        return redirect(url_for('admin.master_data'))
+    try:
+        adjustment.is_active = not adjustment.is_active
+        db.session.commit()
+        status = "activado" if adjustment.is_active else "desactivado"
+        flash(f'Criterio de ajuste {adjustment.name} {status} exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al cambiar estado del criterio: {str(e)}', 'error')
+    return redirect(url_for('admin.master_data'))
+
+@admin_bp.route('/master-data/reason', methods=['POST'])
+@login_required
+@admin_required
+def create_reason():
+    try:
+        reason = request.form.get('reason', '').strip()
+        category = request.form.get('category', '').strip()
+        if not reason or not category:
+            flash('Razón y categoría son obligatorios.', 'error')
+        else:
+            standardized_reason = StandardizedReason(reason=reason, category=category, clinic_id=current_user.clinic_id)
+            db.session.add(standardized_reason)
+            db.session.commit()
+            flash('Razón estandarizada creada exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al crear razón estandarizada: {str(e)}', 'error')
+    return redirect(url_for('admin.master_data'))
+
+@admin_bp.route('/master-data/reason/<int:reason_id>/toggle', methods=['POST'])
+@login_required
+@admin_required
+def toggle_reason(reason_id):
+    reason = StandardizedReason.query.get_or_404(reason_id)
+    if reason.clinic_id != current_user.clinic_id:
+        flash('No tiene permisos para modificar esta razón.', 'error')
+        return redirect(url_for('admin.master_data'))
+    try:
+        reason.is_active = not reason.is_active
+        db.session.commit()
+        status = "activada" if reason.is_active else "desactivada"
+        flash(f'Razón estandarizada {status} exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al cambiar estado de la razón: {str(e)}', 'error')
+    return redirect(url_for('admin.master_data'))
+
+@admin_bp.route('/master-data/doctor', methods=['POST'])
+@login_required
+@admin_required
+def create_doctor():
+    try:
+        name = request.form.get('name', '').strip()
+        specialty = request.form.get('specialty', '').strip()
+        medical_license = request.form.get('medical_license', '').strip()
+        if not name:
+            flash('El nombre del médico es obligatorio.', 'error')
+        else:
+            doctor = Doctor(name=name, specialty=specialty, medical_license=medical_license, clinic_id=current_user.clinic_id)
+            db.session.add(doctor)
+            db.session.commit()
+            flash('Médico creado exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al crear médico: {str(e)}', 'error')
+    return redirect(url_for('admin.master_data'))
+
+@admin_bp.route('/master-data/doctor/<int:doctor_id>/toggle', methods=['POST'])
+@login_required
+@admin_required
+def toggle_doctor(doctor_id):
+    doctor = Doctor.query.get_or_404(doctor_id)
+    if doctor.clinic_id != current_user.clinic_id:
+        flash('No tiene permisos para modificar este médico.', 'error')
+        return redirect(url_for('admin.master_data'))
+    try:
+        doctor.is_active = not doctor.is_active
+        db.session.commit()
+        status = "activado" if doctor.is_active else "desactivado"
+        flash(f'Médico {doctor.name} {status} exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al cambiar estado del médico: {str(e)}', 'error')
+    return redirect(url_for('admin.master_data'))
+
+

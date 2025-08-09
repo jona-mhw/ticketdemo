@@ -84,6 +84,26 @@ def init_db_command():
         db.session.flush()
         created_items[clinic.id]['doctors'].append(doc)
 
+        # Create Discharge Time Slots
+        slots_data = [
+            {'name': 'AM', 'start_time': datetime.strptime('08:00', '%H:%M').time(), 'end_time': datetime.strptime('12:00', '%H:%M').time()},
+            {'name': 'PM', 'start_time': datetime.strptime('12:01', '%H:%M').time(), 'end_time': datetime.strptime('18:00', '%H:%M').time()},
+            {'name': 'Noche', 'start_time': datetime.strptime('18:01', '%H:%M').time(), 'end_time': datetime.strptime('23:59', '%H:%M').time()},
+        ]
+        for s_data in slots_data:
+            slot = DischargeTimeSlot(name=s_data['name'], start_time=s_data['start_time'], end_time=s_data['end_time'], clinic_id=clinic.id)
+            db.session.add(slot)
+
+        # Create Stay Adjustment Criteria
+        criteria_data = [
+            {'name': 'Comorbilidad Severa', 'hours_adjustment': 24, 'category': 'comorbidity'},
+            {'name': 'Paciente Mayor de 80 años', 'hours_adjustment': 12, 'category': 'patient_factor'},
+            {'name': 'Cirugía Previa Compleja', 'hours_adjustment': 8, 'category': 'surgical_history'},
+        ]
+        for c_data in criteria_data:
+            criterion = StayAdjustmentCriterion(name=c_data['name'], hours_adjustment=c_data['hours_adjustment'], category=c_data['category'], clinic_id=clinic.id)
+            db.session.add(criterion)
+
         # Create Patients
         for i in range(2):
             rut = f'{patient_rut_counter:08d}-K'

@@ -5,7 +5,7 @@ hemos logrado antes desarrollar la app local y definir un flujo de deploy (info 
 Ahora quiero que revises el code base y comeinces solo por decirme que entiendes el codebase y quedas listo para avanzar con las modificaciones que te pida, para qie comcnezemos a trabajar
 
 
-. Es importante que siempre tengas en vista que los cambios que apliques necesito que se apliquen bien para mis pruebas en desarrollo local, y para que cuando haga deploy a GCP como me enseñaste, funcione. lee bien la carpeta  markdowns-jona
+. Es importante que siempre tengas en vista que los cambios que apliques necesito que se apliquen bien para mis pruebas en desarrollo local, y para que cuando haga deploy a GCP como me enseñaste, funcione. lee bien los markdown de la carpeta raiz
 
 
 gracias!!
@@ -16,7 +16,4 @@ ya hemos avanzado bastante. no hagas cambios sin que conversemos antes, porque a
 
 Este será tu mantra: Piense con cuidado y realice únicamente la tarea específica que le he asignado con la solución más concisa y elegante que cambie la menor cantidad de código posible.
 
-Retomaremos avances que ya veniamos terabajando. mira el archivo C:\Users\jonathan.segura\Desktop\20250808 codebase\gemini.md
-
-
-Esta es la 3era continuació-. Primero agregamos la opcoino multi-clinica; luego sacamos varios erroers; y ahora seguiremos corregiendo errores y avanzando
+Ahora avanzaremos con el backlog de pendientes. ! 

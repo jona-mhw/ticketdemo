@@ -3,50 +3,67 @@
 {% block title %}Gestionar Clínicas - Admin{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="h3 mb-2 text-gray-800">Gestionar Clínicas</h1>
-    <p class="mb-4">Desde aquí puedes ver, crear y editar las clínicas de la red.</p>
+<div class="container mx-auto mt-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">Gestionar Clínicas</h1>
+        <a href="{{ url_for('admin.create_clinic') }}" class="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+            <i class="fas fa-plus mr-2"></i>Crear Nueva Clínica
+        </a>
+    </div>
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Listado de Clínicas</h6>
-            <a href="{{ url_for('admin.create_clinic') }}" class="btn btn-primary btn-sm float-right" style="margin-top: -25px;">
-                <i class="fas fa-plus"></i> Nueva Clínica
-            </a>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for clinic in clinics %}
-                        <tr>
-                            <td>{{ clinic.id }}</td>
-                            <td>{{ clinic.name }}</td>
-                            <td>
-                                {% if clinic.is_active %}
-                                    <span class="badge badge-success">Activa</span>
-                                {% else %}
-                                    <span class="badge badge-danger">Inactiva</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{{ url_for('admin.edit_clinic', clinic_id=clinic.id) }}" class="btn btn-warning btn-sm">
-                                    <i class="fas fa-edit"></i> Editar
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="mb-4">
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-md {{ 'bg-green-100 text-green-800' if category == 'success' else 'bg-red-100 text-red-800' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
             </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        <th class="py-3 px-6 text-left">ID</th>
+                        <th class="py-3 px-6 text-left">Nombre</th>
+                        <th class="py-3 px-6 text-center">Estado</th>
+                        <th class="py-3 px-6 text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    {% for clinic in clinics %}
+                    <tr class="border-b border-gray-200 hover:bg-gray-100">
+                        <td class="py-3 px-6">{{ clinic.id }}</td>
+                        <td class="py-3 px-6">{{ clinic.name }}</td>
+                        <td class="py-3 px-6 text-center">
+                            <span class="px-2 py-1 font-semibold leading-tight rounded-full {{ 'text-green-700 bg-green-100' if clinic.is_active else 'text-red-700 bg-red-100' }}">
+                                {{ 'Activa' if clinic.is_active else 'Inactiva' }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-6 text-center">
+                            <a href="{{ url_for('admin.edit_clinic', clinic_id=clinic.id) }}" class="text-primary hover:text-opacity-80 mr-4" title="Editar"><i class="fas fa-edit"></i></a>
+                            <form action="{{ url_for('admin.toggle_clinic', clinic_id=clinic.id) }}" method="POST" class="inline-block">
+                                <button type="submit" class="text-gray-500 hover:text-gray-800" title="{{ 'Desactivar' if clinic.is_active else 'Activar' }}">
+                                    {% if clinic.is_active %}
+                                        <i class="fas fa-toggle-on"></i>
+                                    {% else %}
+                                        <i class="fas fa-toggle-off"></i>
+                                    {% endif %}
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="py-4 px-6 text-center">No hay clínicas registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

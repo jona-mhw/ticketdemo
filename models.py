@@ -134,6 +134,22 @@ class Patient(db.Model):
         parts = [self.primer_nombre, self.segundo_nombre, self.apellido_paterno, self.apellido_materno]
         return ' '.join(part for part in parts if part)
 
+    @property
+    def primer_nombre_prop(self):
+        return self.primer_nombre
+
+    @property
+    def segundo_nombre_prop(self):
+        return self.segundo_nombre
+
+    @property
+    def apellido_paterno_prop(self):
+        return self.apellido_paterno
+
+    @property
+    def apellido_materno_prop(self):
+        return self.apellido_materno
+
 class Ticket(db.Model):
     id = db.Column(db.String(20), primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=True)
