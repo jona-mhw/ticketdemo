@@ -10,7 +10,6 @@ Cuando trabajas con Git en VS Code, verás letras y colores junto a tus archivos
 *   **M (Amarillo):** **Modified** (Modificado). Es un archivo que ya existía en Git y que has editado.
 *   **D (Rojo):** **Deleted** (Eliminado). Es un archivo que has borrado.
 *   **A (Verde):** **Added** (Añadido). Es un archivo nuevo que ya has añadido al "staging area" con `git add`.
-*   **C (Naranja):** **Conflict** (Conflicto). Ocurre en situaciones más avanzadas (fusiones de ramas). ¡No te preocupes por esto ahora!
 
 ---
 
@@ -36,16 +35,11 @@ git add .
 
 ### 3. Guarda los cambios en tu historial local (Commit)
 
-Crea la "instantánea" con un mensaje que describa **qué hiciste**.
+Crea la "instantánea" con un mensaje que describa **qué hiciste**. **Esto lo harás muchas veces.** Cada commit es un pequeño paso en tu proyecto.
 
 ```bash
 git commit -m "Un mensaje descriptivo de tus cambios"
 ```
-
-**Ejemplos de buenos mensajes:**
-*   `git commit -m "Feat: Agrega formulario de creación de clínicas"`
-*   `git commit -m "Fix: Corrige error en el login que no permitía entrar"`
-*   `git commit -m "Docs: Actualiza el flujo de trabajo de Git"`
 
 ### 4. Sube tus cambios a GitHub (Push)
 
@@ -55,19 +49,21 @@ Sube tus cambios guardados a la nube (GitHub).
 git push origin master
 ```
 
+**Nota:** Desde la página de GitHub, puedes hacer clic en la sección de "Commits" y descargar un ZIP de **cualquier** commit que hayas subido, no necesitas un tag para eso.
+
 ---
 
 ## ¿Cómo crear y gestionar versiones (Tags)?
 
-Si los cambios que hiciste son significativos (una nueva funcionalidad, una corrección importante), es una buena práctica crear una "versión" con un tag.
+Un **Tag** es una etiqueta especial para un commit **muy importante**. No se crea un tag para cada cambio, sino para marcar un hito o una versión estable que estás listo para desplegar.
 
 ### Nombrando tus versiones
 
 Usa un sistema llamado **Versionamiento Semántico (Semantic Versioning)**. El formato es `vMAJOR.MINOR.PATCH`.
 
-*   **MAJOR (v1.0.0):** Se incrementa cuando haces cambios incompatibles con la versión anterior.
-*   **MINOR (v1.1.0):** Se incrementa cuando añades una nueva funcionalidad que es compatible con lo anterior.
-*   **PATCH (v1.0.1):** Se incrementa cuando haces correcciones de errores compatibles con lo anterior.
+*   **MAJOR (v1.0.0):** Para cambios grandes que rompen la compatibilidad.
+*   **MINOR (v1.1.0):** Para nuevas funcionalidades compatibles.
+*   **PATCH (v1.0.1):** Para correcciones de errores compatibles.
 
 ### Comando para crear una nueva versión
 
@@ -95,19 +91,16 @@ Puedes revisar el código de cualquier versión anterior que hayas guardado con 
 
 ### 1. Ver una versión anterior
 
-Para mover tu código a cómo estaba en una versión específica, usa `checkout`.
-
 ```bash
-# Plantilla: git checkout <nombre_del_tag>
-# Ejemplo práctico para ver la versión 1.0.0:
+# Ejemplo para ver la versión 1.0.0:
 git checkout v1.0.0
 ```
 
-**¡Importante!** Al hacer esto, entras en un estado especial llamado "detached HEAD". Es perfecto para mirar o copiar código, pero **no hagas cambios aquí**.
+**¡Importante!** Al hacer esto, entras en un estado especial ("detached HEAD"). Es perfecto para mirar código, pero **no hagas cambios aquí**.
 
 ### 2. Volver al presente (a tu código más reciente)
 
-Cuando hayas terminado de revisar el pasado, siempre debes volver a tu rama de trabajo principal.
+Cuando termines, siempre debes volver a tu rama de trabajo principal.
 
 ```bash
 git checkout master
