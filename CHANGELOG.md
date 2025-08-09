@@ -1,4 +1,11 @@
-## [1.1.0] - 2025-08-09
+## [1.2.0] - 2025-08-09
+
+### Added
+
+*   Refactored the ticket list views to improve code quality and maintainability.
+*   Created a reusable macro for the tickets table to ensure consistency between different views.
+*   Moved the "detalle" button to the left in the ticket list view.
+*   Removed the "detalle" action from the visualizador view.
 
 ### Fixed
 

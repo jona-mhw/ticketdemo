@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from models import db, Ticket, Patient, Surgery
 from datetime import datetime
 from sqlalchemy import or_
-from routes.tickets import _build_tickets_query, calculate_time_remaining
+from .utils import _build_tickets_query, calculate_time_remaining
 
 visualizador_bp = Blueprint('visualizador', __name__, url_prefix='/visualizador')
 
