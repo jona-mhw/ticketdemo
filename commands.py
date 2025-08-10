@@ -3,6 +3,7 @@ from flask.cli import with_appcontext
 from models import db, User, Clinic, Surgery, Technique, StayAdjustmentCriterion, Doctor, DischargeTimeSlot, StandardizedReason, Patient, Ticket
 from datetime import datetime, timedelta
 import re
+import random
 
 def generate_prefix(clinic_name):
     """Generates a short, unique prefix from a clinic name."""
@@ -84,15 +85,27 @@ def init_db_command():
         db.session.flush()
         created_items[clinic.id]['doctors'].append(doc)
 
-        # Create Discharge Time Slots
-        slots_data = [
-            {'name': 'AM', 'start_time': datetime.strptime('08:00', '%H:%M').time(), 'end_time': datetime.strptime('12:00', '%H:%M').time()},
-            {'name': 'PM', 'start_time': datetime.strptime('12:01', '%H:%M').time(), 'end_time': datetime.strptime('18:00', '%H:%M').time()},
-            {'name': 'Noche', 'start_time': datetime.strptime('18:01', '%H:%M').time(), 'end_time': datetime.strptime('23:59', '%H:%M').time()},
-        ]
-        for s_data in slots_data:
-            slot = DischargeTimeSlot(name=s_data['name'], start_time=s_data['start_time'], end_time=s_data['end_time'], clinic_id=clinic.id)
-            db.session.add(slot)
+        # Create 2-hour Discharge Time Slots
+        if not DischargeTimeSlot.query.filter_by(clinic_id=clinic.id).first():
+            for i in range(0, 24, 2):
+                start_time = datetime.strptime(f'{i:02d}:00', '%H:%M').time()
+                
+                end_hour = i + 2
+                # The end of the day is 23:59:59
+                if end_hour == 24:
+                    end_time = datetime.strptime('23:59:59', '%H:%M:%S').time()
+                    slot_name = f"{start_time.strftime('%H:%M')} - 00:00"
+                else:
+                    end_time = datetime.strptime(f'{end_hour:02d}:00', '%H:%M').time()
+                    slot_name = f"{start_time.strftime('%H:%M')} - {end_time.strftime('%H:%M')}"
+
+                slot = DischargeTimeSlot(
+                    name=slot_name,
+                    start_time=start_time,
+                    end_time=end_time,
+                    clinic_id=clinic.id
+                )
+                db.session.add(slot)
 
         # Create Stay Adjustment Criteria
         criteria_data = [
@@ -103,6 +116,32 @@ def init_db_command():
         for c_data in criteria_data:
             criterion = StayAdjustmentCriterion(name=c_data['name'], hours_adjustment=c_data['hours_adjustment'], category=c_data['category'], clinic_id=clinic.id)
             db.session.add(criterion)
+
+        # Create Standardized Reasons
+        if not StandardizedReason.query.filter_by(clinic_id=clinic.id).first():
+            reasons_data = [
+                # Modification Reasons
+                {'reason': 'Complicación post-operatoria', 'category': 'modification'},
+                {'reason': 'Condición del paciente requiere más observación', 'category': 'modification'},
+                {'reason': 'Resultados de laboratorio pendientes', 'category': 'modification'},
+                {'reason': 'Solicitud del paciente/familia', 'category': 'modification'},
+                # Annulment Reasons
+                {'reason': 'Error en el ingreso de datos', 'category': 'annulment'},
+                {'reason': 'Paciente transferido a otra unidad', 'category': 'annulment'},
+                {'reason': 'Cirugía suspendida/reprogramada', 'category': 'annulment'},
+                {'reason': 'Ticket duplicado', 'category': 'annulment'},
+                # Non-Compliance Reasons (for closure)
+                {'reason': 'Alta voluntaria', 'category': 'non_compliance'},
+                {'reason': 'Transferencia a hospital de origen', 'category': 'non_compliance'},
+                {'reason': 'Fuga del paciente', 'category': 'non_compliance'},
+            ]
+            for r_data in reasons_data:
+                reason = StandardizedReason(
+                    reason=r_data['reason'],
+                    category=r_data['category'],
+                    clinic_id=clinic.id
+                )
+                db.session.add(reason)
 
         # Create Patients
         for i in range(2):
@@ -122,28 +161,59 @@ def init_db_command():
 
     db.session.commit()
 
-    # Create Tickets
+    # Create a variety of Tickets for testing
+    click.echo("Creating sample tickets...")
     ticket_counter = 1
     for clinic in all_clinics:
         prefix = generate_prefix(clinic.name)
         clinic_data = created_items[clinic.id]
-        now = datetime.now()
         
-        if clinic_data['patients'] and clinic_data['surgeries'] and clinic_data['techniques'] and clinic_data['doctors']:
-            ticket1 = Ticket(
+        if not all([clinic_data['patients'], clinic_data['surgeries'], clinic_data['techniques'], clinic_data['doctors']]):
+            click.echo(f"Skipping ticket creation for {clinic.name} due to missing master data.")
+            continue
+
+        for i in range(15): # Create 15 tickets per clinic
+            now = datetime.now()
+            
+            # Randomize data for variety
+            patient = random.choice(clinic_data['patients'])
+            surgery = random.choice(clinic_data['surgeries'])
+            # Find a technique related to the chosen surgery
+            technique = next((t for t in clinic_data['techniques'] if t.surgery_id == surgery.id), random.choice(clinic_data['techniques']))
+            doctor = random.choice(clinic_data['doctors'])
+            pavilion_end_time = now - timedelta(days=random.randint(0, 30), hours=random.randint(0, 23))
+            
+            # Base FPA calculation
+            fpa, overnight_stays = Ticket().calculate_fpa(pavilion_end_time, technique.base_stay_hours, 0, surgery)
+
+            ticket = Ticket(
                 id=f'TH-{prefix.upper()}-{now.year}-{ticket_counter:03d}',
-                patient_id=clinic_data['patients'][0].id,
-                surgery_id=clinic_data['surgeries'][0].id,
-                technique_id=clinic_data['techniques'][0].id,
-                doctor_id=clinic_data['doctors'][0].id,
-                pavilion_end_time=now - timedelta(hours=10),
-                initial_fpa=now + timedelta(hours=14),
-                current_fpa=now + timedelta(hours=14),
-                overnight_stays=1,
+                patient_id=patient.id,
+                surgery_id=surgery.id,
+                technique_id=technique.id,
+                doctor_id=doctor.id,
+                pavilion_end_time=pavilion_end_time,
+                initial_fpa=fpa,
+                current_fpa=fpa,
+                overnight_stays=overnight_stays,
                 created_by=f'admin_{prefix}',
-                clinic_id=clinic.id
+                clinic_id=clinic.id,
+                status='Vigente'
             )
-            db.session.add(ticket1)
+            
+            # Randomly set some tickets to closed or annulled
+            if i % 4 == 0:
+                ticket.status = 'Cerrado'
+                ticket.closed_at = pavilion_end_time + timedelta(days=overnight_stays, hours=random.randint(-5, 5))
+                ticket.actual_discharge_date = ticket.closed_at
+                ticket.compliance_status = 'compliant' if ticket.actual_discharge_date <= ticket.current_fpa else 'non_compliant'
+            elif i % 7 == 0:
+                ticket.status = 'Anulado'
+                ticket.annulled_at = pavilion_end_time + timedelta(days=1)
+                ticket.annulled_by = f'admin_{prefix}'
+                ticket.annulled_reason = 'Error en el ingreso de datos'
+
+            db.session.add(ticket)
             ticket_counter += 1
 
     db.session.commit()

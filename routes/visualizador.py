@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from models import db, Ticket, Patient, Surgery
 from datetime import datetime
 from sqlalchemy import or_
-from .utils import _build_tickets_query, calculate_time_remaining
+from .utils import _build_tickets_query, calculate_time_remaining, apply_sorting_to_query
 
 visualizador_bp = Blueprint('visualizador', __name__, url_prefix='/visualizador')
 
@@ -26,19 +26,7 @@ def dashboard():
 
     query = _build_tickets_query(filters)
 
-    if sort_by == 'patient':
-        order_column = Patient.primer_nombre
-    elif sort_by == 'surgery':
-        order_column = Surgery.name
-    elif sort_by == 'fpa':
-        order_column = Ticket.current_fpa
-    else:
-        order_column = getattr(Ticket, sort_by, Ticket.created_at)
-
-    if sort_dir == 'desc':
-        query = query.order_by(db.desc(order_column))
-    else:
-        query = query.order_by(db.asc(order_column))
+    query = apply_sorting_to_query(query, sort_by, sort_dir)
 
     tickets = query.all()
     tickets_fpa_count = query.filter(Ticket.current_fpa.isnot(None)).count()
