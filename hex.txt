@@ -1,0 +1,8 @@
+Verde Brillante: #8AC52F
+Gris: #BFBFBF
+Azul Verdoso Oscuro (Header superior): #27969E
+Azul Verdoso Claro: #60B2B2
+Azul Verdoso Medio: #37AEAF
+Azul Verdoso Oscuro (Botón "PAGO TRATAMIENTO DENTAL"): #2B8789
+Azul Oscuro/Teal: #2F7E81
+Fondo Blanco/Gris Muy Claro: #F5F5F5

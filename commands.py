@@ -4,6 +4,8 @@ from models import db, User, Clinic, Surgery, Technique, StayAdjustmentCriterion
 from datetime import datetime, timedelta
 import re
 import random
+import os
+from flask import current_app
 
 def generate_prefix(clinic_name):
     """Generates a short, unique prefix from a clinic name."""
@@ -11,26 +13,31 @@ def generate_prefix(clinic_name):
     prefix = re.sub(r'[^a-z]', '', name_parts)[:4]
     return prefix
 
-@click.command('init-db')
-@with_appcontext
-def init_db_command():
+def seed_db():
     """Initialize the database with default data for all clinics."""
-    db.create_all()
-    
+    # Check if running in production (Cloud Run sets K_SERVICE)
+    is_production = os.environ.get('K_SERVICE') is not None
+
     if not Clinic.query.first():
-        clinic_names = [
-            "Clínica RedSalud Iquique", "Clínica RedSalud Elqui", "Clínica RedSalud Valparaíso",
-            "Clínica RedSalud Providencia", "Clínica RedSalud Santiago", "Clínica RedSalud Vitacura",
-            "Clínica RedSalud Rancagua", "Clínica RedSalud Mayor Temuco", "Clínica RedSalud Magallanes"
-        ]
+        if is_production:
+            clinic_names = ["Clínica RedSalud Providencia", "Clínica RedSalud Santiago"]
+            print("Production environment detected. Populating with minimal clinics...")
+        else:
+            clinic_names = [
+                "Clínica RedSalud Iquique", "Clínica RedSalud Elqui", "Clínica RedSalud Valparaíso",
+                "Clínica RedSalud Providencia", "Clínica RedSalud Santiago", "Clínica RedSalud Vitacura",
+                "Clínica RedSalud Rancagua", "Clínica RedSalud Mayor Temuco", "Clínica RedSalud Magallanes"
+            ]
+            print("Development environment. Populating with all clinics...")
+        
         for name in clinic_names:
             db.session.add(Clinic(name=name))
         db.session.commit()
-        click.echo("Clinics populated.")
+        print(f"{len(clinic_names)} clinics populated.")
     
     all_clinics = Clinic.query.all()
     if not all_clinics:
-        click.echo("No clinics found. Aborting data seeding.")
+        print("No clinics found. Aborting data seeding.")
         return
 
     created_items = {}
@@ -38,7 +45,7 @@ def init_db_command():
 
     for clinic in all_clinics:
         prefix = generate_prefix(clinic.name)
-        click.echo(f"Populating data for {clinic.name} ({prefix})...")
+        print(f"Populating data for {clinic.name} ({prefix})...")
         
         created_items[clinic.id] = {
             'surgeries': [], 'techniques': [], 'doctors': [], 'patients': []
@@ -91,7 +98,6 @@ def init_db_command():
                 start_time = datetime.strptime(f'{i:02d}:00', '%H:%M').time()
                 
                 end_hour = i + 2
-                # The end of the day is 23:59:59
                 if end_hour == 24:
                     end_time = datetime.strptime('23:59:59', '%H:%M:%S').time()
                     slot_name = f"{start_time.strftime('%H:%M')} - 00:00"
@@ -162,17 +168,20 @@ def init_db_command():
     db.session.commit()
 
     # Create a variety of Tickets for testing
-    click.echo("Creating sample tickets...")
+    print("Creating sample tickets...")
     ticket_counter = 1
+    is_production = os.environ.get('K_SERVICE') is not None
+    num_tickets_per_clinic = 2 if is_production else 15
+
     for clinic in all_clinics:
         prefix = generate_prefix(clinic.name)
         clinic_data = created_items[clinic.id]
         
         if not all([clinic_data['patients'], clinic_data['surgeries'], clinic_data['techniques'], clinic_data['doctors']]):
-            click.echo(f"Skipping ticket creation for {clinic.name} due to missing master data.")
+            print(f"Skipping ticket creation for {clinic.name} due to missing master data.")
             continue
 
-        for i in range(15): # Create 15 tickets per clinic
+        for i in range(num_tickets_per_clinic): # Create tickets based on environment
             now = datetime.now()
             
             # Randomize data for variety
@@ -217,14 +226,31 @@ def init_db_command():
             ticket_counter += 1
 
     db.session.commit()
+    print("Database initialized with multi-clinic support and sample data.")
+
+@click.command('init-db')
+@with_appcontext
+def init_db_command():
+    """Initialize the database with default data for all clinics."""
+    db.create_all()
+    seed_db()
     click.echo("Database initialized with multi-clinic support and sample data.")
 
 @click.command('reset-db')
 @with_appcontext
 def reset_db_command():
     """Drops all tables and re-initializes the database."""
+    # Ensure the instance folder exists
+    instance_path = current_app.instance_path
+    if not os.path.exists(instance_path):
+        os.makedirs(instance_path)
+        click.echo(f'Created instance folder at: {instance_path}')
+
     db.drop_all()
-    init_db_command.callback()
+    click.echo('Database dropped.')
+    db.create_all()
+    click.echo('Database created.')
+    seed_db()
     click.echo('Database has been reset.')
 
 def register_commands(app):

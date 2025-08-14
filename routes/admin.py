@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, User, Surgery, Technique, StayAdjustmentCriterion, StandardizedReason, Doctor, DischargeTimeSlot, Clinic
+from models import db, User, Surgery, Technique, StayAdjustmentCriterion, StandardizedReason, Doctor, DischargeTimeSlot, Clinic, LoginAudit
 from functools import wraps
 from datetime import datetime, time
 
@@ -372,5 +372,14 @@ def toggle_doctor(doctor_id):
         db.session.rollback()
         flash(f'Error al cambiar estado del médico: {str(e)}', 'error')
     return redirect(url_for('admin.master_data'))
+
+
+@admin_bp.route('/audit/logins')
+@login_required
+@admin_required
+def login_audit():
+    page = request.args.get('page', 1, type=int)
+    logs = LoginAudit.query.filter_by(clinic_id=current_user.clinic_id).order_by(LoginAudit.timestamp.desc()).paginate(page=page, per_page=20)
+    return render_template('admin/audit_log.html', logs=logs)
 
 

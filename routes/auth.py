@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required
-from models import User
+from models import db, User, LoginAudit
+from datetime import datetime
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -18,6 +19,21 @@ def login():
         
         if user and user.password == password and user.is_active:
             login_user(user)
+            
+            # Audit log
+            try:
+                audit_log = LoginAudit(
+                    user_id=user.id,
+                    username=user.username,
+                    clinic_id=user.clinic_id,
+                    ip_address=request.remote_addr
+                )
+                db.session.add(audit_log)
+                db.session.commit()
+            except Exception as e:
+                flash(f'Error al registrar auditoría: {str(e)}', 'warning')
+                db.session.rollback()
+
             flash(f'¡Bienvenido, {user.username}!', 'success')
             if user.role == 'visualizador':
                 return redirect(url_for('visualizador.dashboard'))

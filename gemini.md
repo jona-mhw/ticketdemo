@@ -1,3 +1,4 @@
+
 # Nota sobre el Alcance del Proyecto
 
 Este proyecto se desarrolla como una **demostración funcional (demo)**. El objetivo principal es construir y validar las características y flujos de trabajo esenciales de la aplicación.

@@ -5,13 +5,20 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Copia el archivo de requisitos e instala las dependencias
+# Se hace por separado para aprovechar el caché de Docker si no cambian las dependencias
 COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia el resto de la aplicación
-COPY . .
+# Copia los archivos y directorios de la aplicación de forma explícita
+COPY app.py .
+COPY config.py .
+COPY models.py .
+COPY commands.py .
+COPY routes ./routes
+COPY templates ./templates
+COPY static ./static
 
-# Expone el puerto 8080
+# Expone el puerto 8080 para Gunicorn
 EXPOSE 8080
 
 # Comando para ejecutar la aplicación con Gunicorn

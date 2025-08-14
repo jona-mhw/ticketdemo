@@ -231,3 +231,14 @@ class FpaModification(db.Model):
     modified_at = db.Column(db.DateTime, default=datetime.utcnow)
     modified_by = db.Column(db.String(80), nullable=False)
 
+
+class LoginAudit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    username = db.Column(db.String(80), nullable=False)
+    clinic_id = db.Column(db.Integer, db.ForeignKey('clinic.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    ip_address = db.Column(db.String(45), nullable=True)
+
+    user = db.relationship('User', backref='login_audits')
+
