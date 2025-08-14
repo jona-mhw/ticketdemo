@@ -62,3 +62,34 @@ gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.serv
 -   **Consistencia:** La estructura de archivos (con la base de datos dentro de `instance/`) es idéntica en tu entorno local y en la nube.
 -   **Simplicidad:** El comando de despliegue es más limpio, más corto y más fácil de recordar.
 -   **Flexibilidad a Futuro:** Si mañana decides usar una base de datos en la nube (como Cloud SQL), solo necesitarás **volver a añadir** el argumento `--set-env-vars` apuntando a la nueva base de datos, sin tocar una sola línea de tu aplicación.
+
+---
+
+## Parte 3: Cómo Gestionar el Código con Git
+
+Para mantener un historial de cambios ordenado y colaborar de manera efectiva, seguimos un flujo de trabajo simple con Git.
+
+1.  **Revisar Cambios:** Antes de hacer nada, revisa los archivos que has modificado.
+    ```bash
+    git status
+    ```
+
+2.  **Añadir Cambios al Staging:** Prepara todos tus cambios para el commit.
+    ```bash
+    git add .
+    ```
+
+3.  **Crear un Commit:** Guarda tus cambios en el historial local con un mensaje descriptivo.
+    ```bash
+    git commit -m "Un mensaje claro sobre el cambio"
+    ```
+
+4.  **Crear un Tag (Opcional pero Recomendado):** Para marcar versiones importantes, crea un tag. Reemplaza los espacios en el nombre del tag con guiones.
+    ```bash
+    git tag -a "v1.2.0-nombre-descriptivo" -m "Descripción del tag"
+    ```
+
+5.  **Subir Cambios a GitHub:** Envía tus commits y tags al repositorio remoto.
+    ```bash
+    git push origin master --tags
+    ```
