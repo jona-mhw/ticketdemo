@@ -1,3 +1,14 @@
+## [1.3.0] - 2025-08-15
+
+### Changed
+- **Migración de Base de Datos a Supabase/PostgreSQL:** Se ha migrado la base de datos del proyecto desde SQLite a una instancia de PostgreSQL gestionada en Supabase.
+- Se actualizó la configuración de la aplicación para conectarse a la nueva base de datos.
+- Se eliminó la lógica de auto-creación de la base de datos local desde `app.py`.
+- El proceso de inicialización de la base de datos ahora se maneja exclusivamente a través del comando `flask reset-db`, que opera sobre la instancia remota.
+
+### Added
+- Se añadió la dependencia `psycopg2-binary` a `requirements.txt` para la conexión con PostgreSQL.
+
 ## [1.2.0] - 2025-08-09
 
 ### Added

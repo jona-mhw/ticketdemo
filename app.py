@@ -15,24 +15,7 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
 
-    # --- LÓGICA DE AUTO-CREACIÓN DE LA BASE DE DATOS ---
-    with app.app_context():
-        # Extraer la ruta del archivo de la URI de configuración
-        db_path_str = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
-        
-        # Asegurarse que el directorio 'instance' exista
-        db_dir = os.path.dirname(db_path_str)
-        if not os.path.exists(db_dir):
-            os.makedirs(db_dir)
-            print(f"Directorio de instancia creado en: {db_dir}")
-
-        # Si el archivo de la BD no existe, crearlo y poblarlo
-        if not os.path.exists(db_path_str):
-            print(f"Base de datos no encontrada en '{db_path_str}'. Creando y poblando...")
-            db.create_all()
-            seed_db() # Llama a la lógica de seed_db
-            print("Base de datos creada y poblada exitosamente.")
-    # --- FIN DE LA LÓGICA DE AUTO-CREACIÓN ---
+    # Database initialization is now handled by Flask commands.
 
     # Initialize Flask-Login
     login_manager = LoginManager()

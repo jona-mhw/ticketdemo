@@ -18,7 +18,7 @@ Tickethome es una aplicación web desarrollada en Flask, diseñada para la gesti
 La aplicación está construida con las siguientes tecnologías:
 
 *   **Backend:** Python con el framework Flask.
-*   **Base de Datos:** SQLite para el desarrollo local y la demo.
+*   **Base de Datos:** PostgreSQL, gestionada en Supabase.
 *   **Frontend:** HTML, CSS (posiblemente con un framework como Tailwind CSS, mencionado en `gemini.md`), y JavaScript.
 *   **ORM:** Flask-SQLAlchemy.
 *   **Autenticación:** Flask-Login.
@@ -32,7 +32,7 @@ Las dependencias de Python se gestionan a través de un archivo `requirements.tx
 
 1.  **Entorno Virtual:** Se utiliza un entorno virtual de Python para aislar las dependencias.
 2.  **Instalación de Dependencias:** Se instalan las dependencias desde `requirements.txt` con `pip install -r requirements.txt`.
-3.  **Base de Datos:** Se utiliza una base de datos SQLite (`instance/tickethome.db`) para el desarrollo. El comando `flask reset-db` permite inicializar o resetear la base de datos con datos de prueba.
+3.  **Base de Datos:** La aplicación se conecta a una base de datos de desarrollo en Supabase (PostgreSQL). El comando `flask reset-db` permite inicializar o resetear la base de datos remota con datos de prueba.
 4.  **Ejecución:** La aplicación se ejecuta localmente con `flask run`.
 
 ### Flujo de Trabajo con Git
@@ -53,4 +53,11 @@ El despliegue se realiza a través de un único comando de `gcloud`:
 gcloud run deploy tickethome-demo --source . --region us-central1 --allow-unauthenticated
 ```
 
-Este comando empaqueta el código fuente, incluyendo la base de datos de demo, y lo despliega en Google Cloud Run. La aplicación en producción utiliza una copia de la base de datos de desarrollo.
+Este comando empaqueta el código fuente y lo despliega en Google Cloud Run. La aplicación en producción se conecta a la base de datos de Supabase configurada.
+
+
+## Estado Actual
+
+El proyecto ha alcanzado un hito importante con la migración de su base de datos de SQLite a PostgreSQL en Supabase. Esto mejora significativamente la escalabilidad y robustez del sistema, alineándolo con las prácticas de producción estándar.
+
+La aplicación es completamente funcional con la nueva infraestructura de base de datos. El backlog de tareas críticas de desarrollo está completo.
