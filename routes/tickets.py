@@ -177,16 +177,16 @@ def detail(ticket_id):
     
     modification_reasons = StandardizedReason.query.filter_by(category='modification', is_active=True, clinic_id=current_user.clinic_id).all()
     annulment_reasons = StandardizedReason.query.filter_by(category='annulment', is_active=True, clinic_id=current_user.clinic_id).all()
-    non_compliance_reasons = StandardizedReason.query.filter_by(category='non_compliance', is_active=True, clinic_id=current_user.clinic_id).all()
+    discharge_time_slots = DischargeTimeSlot.query.filter_by(is_active=True, clinic_id=current_user.clinic_id).order_by(DischargeTimeSlot.start_time).all()
     
     return render_template('tickets/detail.html', 
                          ticket=ticket, adjustment_details=adjustment_details,
                          modification_reasons=modification_reasons, annulment_reasons=annulment_reasons,
-                         non_compliance_reasons=non_compliance_reasons)
+                         discharge_time_slots=discharge_time_slots)
 
-@tickets_bp.route('/<ticket_id>/modify_fpa', methods=['POST'])
+@tickets_bp.route('/<ticket_id>/update_fpa', methods=['POST'])
 @login_required
-def modify_fpa(ticket_id):
+def update_fpa(ticket_id):
     ticket = Ticket.query.filter_by(id=ticket_id, clinic_id=current_user.clinic_id).first_or_404()
     
     if not ticket.can_be_modified():
@@ -198,24 +198,36 @@ def modify_fpa(ticket_id):
         return redirect(url_for('tickets.detail', ticket_id=ticket_id))
     
     try:
-        new_fpa_str = request.form.get('new_fpa')
+        new_fpa_date_str = request.form.get('new_fpa_date')
+        discharge_slot_id = request.form.get('discharge_slot_id')
         reason = request.form.get('reason')
-        justification = request.form.get('justification', '')
+        justification = request.form.get('justification', '').strip()
         
-        if not new_fpa_str or not reason:
-            flash('Todos los campos son obligatorios.', 'error')
+        if not all([new_fpa_date_str, discharge_slot_id, reason]):
+            flash('La fecha, el rango horario y la razón son obligatorios.', 'error')
             return redirect(url_for('tickets.detail', ticket_id=ticket_id))
-        
-        new_fpa = datetime.strptime(new_fpa_str, '%Y-%m-%dT%H:%M')
+
+        new_fpa_date = datetime.strptime(new_fpa_date_str, '%Y-%m-%d').date()
+        slot = DischargeTimeSlot.query.get(discharge_slot_id)
+        if not slot:
+            flash('Rango horario no válido.', 'error')
+            return redirect(url_for('tickets.detail', ticket_id=ticket_id))
+
+        new_fpa = datetime.combine(new_fpa_date, slot.start_time)
         
         modification = FpaModification(
-            ticket_id=ticket_id, previous_fpa=ticket.current_fpa, new_fpa=new_fpa,
-            reason=reason, justification=justification, modified_by=current_user.username,
-            clinic_id=current_user.clinic_id
+            ticket_id=ticket_id,
+            clinic_id=current_user.clinic_id,
+            previous_fpa=ticket.current_fpa,
+            new_fpa=new_fpa,
+            reason=reason,
+            justification=justification,
+            modified_by=current_user.username
         )
         
         ticket.current_fpa = new_fpa
-        
+        ticket.discharge_slot_id = discharge_slot_id
+
         time_diff = new_fpa - ticket.pavilion_end_time
         overnight_stays = max(0, time_diff.days)
         if time_diff.seconds > 0:
@@ -231,42 +243,6 @@ def modify_fpa(ticket_id):
         db.session.rollback()
         flash(f'Error al modificar FPA: {str(e)}', 'error')
     
-    return redirect(url_for('tickets.detail', ticket_id=ticket_id))
-
-@tickets_bp.route('/<ticket_id>/close', methods=['POST'])
-@login_required
-def close_ticket(ticket_id):
-    ticket = Ticket.query.filter_by(id=ticket_id, clinic_id=current_user.clinic_id).first_or_404()
-    if not ticket.can_be_modified():
-        flash('Este ticket no puede ser cerrado.', 'error')
-        return redirect(url_for('tickets.detail', ticket_id=ticket_id))
-    try:
-        actual_discharge_date_str = request.form.get('actual_discharge_date')
-        closed_reason = request.form.get('closed_reason')
-        
-        if not actual_discharge_date_str or not closed_reason:
-            flash('Todos los campos son obligatorios para cerrar el ticket.', 'error')
-            return redirect(url_for('tickets.detail', ticket_id=ticket_id))
-            
-        actual_discharge_date = datetime.strptime(actual_discharge_date_str, '%Y-%m-%dT%H:%M')
-        
-        ticket.status = 'Cerrado'
-        ticket.closed_at = datetime.utcnow()
-        ticket.actual_discharge_date = actual_discharge_date
-        ticket.closed_reason = closed_reason
-        
-        # Determine compliance status
-        if actual_discharge_date <= ticket.current_fpa:
-            ticket.compliance_status = 'compliant'
-        else:
-            ticket.compliance_status = 'non_compliant'
-            
-        db.session.commit()
-        flash(f'Ticket {ticket.id} cerrado exitosamente.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error al cerrar el ticket: {str(e)}', 'error')
-        
     return redirect(url_for('tickets.detail', ticket_id=ticket_id))
 
 @tickets_bp.route('/<ticket_id>/annul', methods=['POST'])
@@ -413,17 +389,10 @@ def export_pdf(ticket_id):
             story.append(Spacer(1, 0.1*inch))
     
     # --- Closure/Annulment Info ---
-    if ticket.status in ['Cerrado', 'Anulado']:
+    if ticket.status in ['Anulado']:
         story.append(p(f"Información de {ticket.status}", 'CustomSubTitle'))
         info_data = []
-        if ticket.status == 'Cerrado':
-            info_data.extend([
-                [h("Fecha de Cierre"), p(ticket.closed_at.strftime('%d/%m/%Y %H:%M') if ticket.closed_at else 'N/A')],
-                [h("Fecha Real de Alta"), p(ticket.actual_discharge_date.strftime('%d/%m/%Y %H:%M') if ticket.actual_discharge_date else 'N/A')],
-                [h("Cumplimiento"), p(ticket.compliance_status)],
-                [h("Razón de Cierre"), p(ticket.closed_reason)],
-            ])
-        else: # Anulado
+        if ticket.status == 'Anulado': # Anulado
             info_data.extend([
                 [h("Fecha de Anulación"), p(ticket.annulled_at.strftime('%d/%m/%Y %H:%M') if ticket.annulled_at else 'N/A')],
                 [h("Anulado por"), p(ticket.annulled_by)],
