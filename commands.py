@@ -82,10 +82,22 @@ def seed_db():
             created_items[clinic.id]['techniques'].append(tech)
 
         # Create Doctors
-        doc = Doctor(name=f'Dr. Carlos Mendoza ({prefix})', specialty='Cirugía General', medical_license=f'12345-{prefix}', clinic_id=clinic.id)
-        db.session.add(doc)
-        db.session.flush()
-        created_items[clinic.id]['doctors'].append(doc)
+        doctors_data = [
+            {'name': 'Dr. Carlos Mendoza', 'specialty': 'Cirugía General', 'license': '12345'},
+            {'name': 'Dra. Ana María Pérez', 'specialty': 'Ginecología', 'license': '54321'},
+            {'name': 'Dr. Juan Pablo Soto', 'specialty': 'Traumatología', 'license': '67890'},
+            {'name': 'Dra. Carolina Rojas', 'specialty': 'Cirugía Pediátrica', 'license': '09876'}
+        ]
+        for doc_data in doctors_data:
+            doc = Doctor(
+                name=f"{doc_data['name']} ({prefix})",
+                specialty=doc_data['specialty'],
+                medical_license=f"{doc_data['license']}-{prefix}",
+                clinic_id=clinic.id
+            )
+            db.session.add(doc)
+            db.session.flush()
+            created_items[clinic.id]['doctors'].append(doc)
 
         # Create 2-hour Discharge Time Slots
         if not DischargeTimeSlot.query.filter_by(clinic_id=clinic.id).first():

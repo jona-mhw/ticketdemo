@@ -70,7 +70,9 @@ def create():
             # Patient data
             rut = request.form.get('rut', '').strip()
             primer_nombre = request.form.get('primer_nombre', '').strip()
+            segundo_nombre = request.form.get('segundo_nombre', '').strip()
             apellido_paterno = request.form.get('apellido_paterno', '').strip()
+            apellido_materno = request.form.get('apellido_materno', '').strip()
             age = int(request.form.get('age', 0))
             sex = request.form.get('sex', '')
             episode_id = request.form.get('episode_id', '').strip()
@@ -113,13 +115,21 @@ def create():
             patient = Patient.query.filter_by(rut=rut, clinic_id=clinic_id).first()
             if not patient:
                 patient = Patient(
-                    rut=rut, primer_nombre=primer_nombre, apellido_paterno=apellido_paterno,
+                    rut=rut, primer_nombre=primer_nombre, segundo_nombre=segundo_nombre,
+                    apellido_paterno=apellido_paterno, apellido_materno=apellido_materno,
                     age=age, sex=sex, episode_id=episode_id, room_location=room_location,
                     clinic_id=clinic_id
                 )
                 db.session.add(patient)
                 db.session.flush()
             else:
+                # Update existing patient's data
+                patient.primer_nombre = primer_nombre
+                patient.segundo_nombre = segundo_nombre
+                patient.apellido_paterno = apellido_paterno
+                patient.apellido_materno = apellido_materno
+                patient.age = age
+                patient.sex = sex
                 patient.episode_id = episode_id
                 patient.room_location = room_location
             

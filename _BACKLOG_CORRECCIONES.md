@@ -5,3 +5,11 @@
 3 - Exportación de Tickets: COMPLETADO - Se ha actualizado la exportación de tickets en formato Excel y PDF para incluir el historial de modificaciones de la FPA. Ahora se muestran hasta 5 modificaciones con su fecha, bloque horario, usuario, motivo y justificación.
 
 4 - Unificar formato de FPA: COMPLETADO - Se ha modificado la visualización de la FPA en toda la aplicación para que muestre siempre la fecha y el rango horario. El cálculo del countdown se ha verificado y funciona correctamente con la primera hora del rango.
+
+5 - Mejorar `reset-db`: COMPLETADO - Se ha poblado la base de datos con más médicos y se han creado todas las clínicas especificadas (Vitacura, Providencia, Santiago, Iquique, Elqui, Valparaíso, Magallanes, Mayor Temuco, Rancagua).
+
+6 - Ajustar perfiles de usuario: COMPLETADO - Se han ajustado los perfiles de usuario para que coincidan con las "Credenciales para Demo" del login. Se ha asegurado de que todos los perfiles, incluyendo el de "visualizador", estén presentes y funcionales.
+
+7 - Mejorar vista de visualizador: COMPLETADO - Se ha añadido un botón o toggle en la vista del perfil "visualizador" para ocultar/mostrar los filtros y la opción de ocultar columnas, permitiendo una vista de monitor más limpia.
+
+8 - Corregir visualización de segundo nombre y apellido: El segundo nombre y el segundo apellido aparecen como 'None' en la vista de detalles del ticket, aunque se ingresen en el formulario de creación.

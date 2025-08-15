@@ -59,6 +59,7 @@
                                 <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clínica</th>
                                 <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario Admin</th>
                                 <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario Clínico</th>
+                                <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario Visualizador</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -78,6 +79,7 @@
                                 <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{{ name }}</td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">admin_{{ prefix }}</td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">clinical_{{ prefix }}</td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">visualizador_{{ prefix }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
