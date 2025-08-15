@@ -49,7 +49,7 @@ Se utiliza un flujo de trabajo simple centrado en la rama `master`:
 El despliegue se realiza a través de un único comando de `gcloud`:
 
 ```bash
-gcloud run deploy tickethome-demo --source . --region us-central1 --allow-unauthenticated --set-env-vars="DATABASE_URL=sqlite:////app/demo_tickethome.db"
+gcloud run deploy tickethome-demo --source . --region us-central1 --allow-unauthenticated --set-env-vars="DATABASE_URL=[TU_DATABASE_URL_DE_SUPABASE]"
 ```
 
 Este comando empaqueta el código fuente y lo despliega en Google Cloud Run. La aplicación en producción se conecta a la base de datos de demo empaquetada en la imagen.

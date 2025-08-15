@@ -47,7 +47,7 @@ Nuestro flujo de trabajo con Git es simple y efectivo, centrado en la rama `mast
 2.  **Comando de Despliegue:** El despliegue se realiza con un único comando de `gcloud`:
 
     ```bash
-    gcloud run deploy tickethome-demo --source . --region us-central1 --allow-unauthenticated --set-env-vars="DATABASE_URL=sqlite:////app/demo_tickethome.db"
+    gcloud run deploy tickethome-demo --source . --region us-central1 --allow-unauthenticated --set-env-vars="DATABASE_URL=[TU_DATABASE_URL_DE_SUPABASE]"
     ```
 
     Este comando empaqueta el código, la base de datos de demo y lo despliega en Cloud Run, configurando la variable de entorno `DATABASE_URL` para que la aplicación en producción utilice la base de datos empaquetada.

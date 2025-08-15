@@ -1,95 +1,72 @@
 # Flujo de Trabajo: Desarrollo y Despliegue
 
-Esta guía describe el proceso para desarrollar nuevas funcionalidades en tu entorno local y cómo desplegar una nueva versión de la aplicación a Google Cloud Run de forma segura y eficiente.
+Esta guía describe el proceso para desarrollar nuevas funcionalidades, interactuar con la base de datos (PostgreSQL en Supabase) y desplegar una nueva versión de la aplicación a Google Cloud Run.
 
 ---
 
-## Parte 1: Cómo Desarrollar Nuevas Funcionalidades (Local)
+## Parte 1: Desarrollo Local y Gestión de la Base de Datos
 
-Tu entorno de desarrollo local está configurado para ser independiente y seguro, utilizando la base de datos de trabajo `instance/tickethome.db`.
+El entorno de desarrollo local se conecta a una base de datos PostgreSQL hosteada en Supabase. Esto centraliza la información y asegura consistencia entre el desarrollo y la producción.
 
-**Tu flujo de trabajo para añadir o modificar funcionalidades es el siguiente:**
+### Flujo de Desarrollo
 
-1.  **Instalar Dependencias (si es necesario):** Si clonas el proyecto o se añaden nuevas librerías, asegúrate de instalarlas.
+1.  **Configurar el Entorno Local (Solo la primera vez):**
+    *   Crea un archivo llamado `.env` en la raíz del proyecto.
+    *   Añade una línea a este archivo con tu credencial de la base de datos:
+        `DATABASE_URL="[TU_DATABASE_URL_DE_SUPABASE]"`
+    *   **Importante:** Reemplaza `[TU_DATABASE_URL_DE_SUPABASE]` con el valor real que obtienes de tu panel de Supabase. El archivo `.env` es ignorado por Git, por lo que tus secretos no se subirán al repositorio.
+
+2.  **Instalar Dependencias:**
     ```bash
     pip install -r requirements.txt
     ```
 
-2.  **Ejecutar la Aplicación Localmente:** Inicia la aplicación con el comando habitual.
+3.  **Ejecutar la Aplicación Localmente:**
     ```bash
     flask run
     ```
-    La aplicación se iniciará en modo de depuración y se conectará automáticamente a `instance/tickethome.db`.
+    La aplicación leerá la variable `DATABASE_URL` desde tu archivo `.env` y se conectará a Supabase.
 
-3.  **Desarrollar y Probar:** Modifica tu código, añade nuevas rutas, cambia plantillas, etc. Guarda los cambios y prueba directamente en tu navegador local (`http://127.0.0.1:5000`).
+### Gestión de la Base de Datos (Supabase)
+
+Para inicializar o resetear la base de datos, la aplicación utiliza comandos de Flask que operan directamente sobre tu instancia remota en Supabase.
+
+*   **`flask init-db`**: Crea las tablas y las puebla con datos iniciales.
+*   **`flask reset-db`**: **¡CUIDADO!** Borra **TODOS** los datos y vuelve a poblarlos. Úsalo con precaución.
+
+```bash
+# Para borrar toda la data y empezar de cero
+flask reset-db
+```
 
 ---
 
 ## Parte 2: Cómo Desplegar una Nueva Versión a Cloud Run
 
-Una vez que has terminado de desarrollar y probar una nueva funcionalidad, estás listo para actualizar la aplicación en la nube. **Gracias a los últimos ajustes, el proceso es ahora más directo y seguro.**
+El despliegue consiste en enviar el código a Google Cloud Run y configurar el servicio para que pueda conectarse a la base de datos de Supabase de forma segura.
 
-### Paso Único: Desplegar la Aplicación
+### Paso Único: Desplegar con la Variable de Entorno
 
-**Ya no es necesario copiar manualmente la base de datos.** El proceso de despliegue ahora incluye automáticamente el contenido del directorio `instance`, asegurando que la base de datos (`tickethome.db`) esté siempre actualizada.
+Debes pasar la cadena de conexión a la aplicación en la nube a través de una variable de entorno.
 
-Simplemente ejecuta el siguiente comando para desplegar:
-
-**Comando de Despliegue (Úsalo siempre para actualizar):**
+**Comando de Despliegue:**
 ```bash
-gcloud run deploy tickethome-demo --source . --region us-central1 --allow-unauthenticated
+gcloud run deploy tickethome-demo --source . --region us-central1 --allow-unauthenticated --set-env-vars="DATABASE_URL=[TU_DATABASE_URL_DE_SUPABASE]"
 ```
+
+**Importante:** Al igual que en el entorno local, reemplaza `[TU_DATABASE_URL_DE_SUPABASE]` con tu credencial real de Supabase.
 
 ### Desglose del Comando
 
--   `gcloud run deploy tickethome-demo`: Despliega al servicio llamado `tickethome-demo`.
--   `--source .`: Usa el código del directorio actual para construir la imagen del contenedor.
--   `--allow-unauthenticated`: Mantiene el servicio público para la demo.
-
-Como puedes ver, ya no se necesita el argumento `--set-env-vars`. La aplicación está configurada para encontrar la base de datos en la ruta correcta de forma automática.
-
-### Cómo Revisar los Logs en Cloud Run
-
-Si el despliegue falla o la aplicación no se comporta como esperas, puedes revisar los logs directamente desde la terminal con este comando:
-
-```bash
-gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.service_name="tickethome-demo"' --limit=20
-```
-
-### ¿Por Qué Este Flujo es Mejor?
-
--   **Cero Pasos Manuales:** Se elimina el riesgo de olvidar copiar la base de datos antes de desplegar.
--   **Consistencia:** La estructura de archivos (con la base de datos dentro de `instance/`) es idéntica en tu entorno local y en la nube.
--   **Simplicidad:** El comando de despliegue es más limpio, más corto y más fácil de recordar.
--   **Flexibilidad a Futuro:** Si mañana decides usar una base de datos en la nube (como Cloud SQL), solo necesitarás **volver a añadir** el argumento `--set-env-vars` apuntando a la nueva base de datos, sin tocar una sola línea de tu aplicación.
+-   `--set-env-vars="DATABASE_URL=..."`: **(Crucial y Obligatorio)** Inyecta de forma segura la credencial de la base de datos en el entorno de producción.
 
 ---
 
 ## Parte 3: Cómo Gestionar el Código con Git
 
-Para mantener un historial de cambios ordenado y colaborar de manera efectiva, seguimos un flujo de trabajo simple con Git.
+Este flujo no cambia. Sigue siendo la mejor manera de mantener un historial de cambios ordenado.
 
-1.  **Revisar Cambios:** Antes de hacer nada, revisa los archivos que has modificado.
-    ```bash
-    git status
-    ```
-
-2.  **Añadir Cambios al Staging:** Prepara todos tus cambios para el commit.
-    ```bash
-    git add .
-    ```
-
-3.  **Crear un Commit:** Guarda tus cambios en el historial local con un mensaje descriptivo.
-    ```bash
-    git commit -m "Un mensaje claro sobre el cambio"
-    ```
-
-4.  **Crear un Tag (Opcional pero Recomendado):** Para marcar versiones importantes, crea un tag. Reemplaza los espacios en el nombre del tag con guiones.
-    ```bash
-    git tag -a "v1.2.0-nombre-descriptivo" -m "Descripción del tag"
-    ```
-
-5.  **Subir Cambios a GitHub:** Envía tus commits y tags al repositorio remoto.
-    ```bash
-    git push origin master --tags
-    ```
+1.  **Revisar Cambios:** `git status`
+2.  **Añadir Cambios:** `git add .`
+3.  **Crear un Commit:** `git commit -m "Un mensaje claro sobre el cambio"`
+4.  **Subir Cambios a GitHub:** `git push origin master`

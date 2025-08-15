@@ -242,10 +242,7 @@ def init_db_command():
 @with_appcontext
 def reset_db_command():
     """Drops all tables and re-initializes the database."""
-    instance_path = current_app.instance_path
-    if not os.path.exists(instance_path):
-        os.makedirs(instance_path)
-        click.echo(f'Created instance folder at: {instance_path}')
+    
 
     db.drop_all()
     click.echo('Database dropped.')

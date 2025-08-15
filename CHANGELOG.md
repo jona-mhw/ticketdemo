@@ -1,3 +1,21 @@
+## [1.4.0] - 2025-08-15
+
+### Added
+- Se rediseñó por completo la funcionalidad de exportación a PDF de un ticket individual.
+- El nuevo diseño es visualmente fiel a la maqueta de referencia, usando la paleta de colores y una maquetación profesional.
+- El PDF ahora muestra la FPA original y la última modificación (si existe) en secciones separadas y claras.
+- Se anonimiza el nombre del paciente en el PDF para proteger su privacidad (Primer Nombre + Inicial de Apellido).
+- El PDF se abre en una nueva pestaña del navegador en lugar de descargarse automáticamente.
+
+### Fixed
+- Se corrigieron múltiples errores en la librería `reportlab` que impedían la generación del PDF.
+- Se solucionaron problemas de contraste de color y disposición de elementos en el diseño del PDF.
+
+### Security
+- Se eliminó la credencial de la base de datos que estaba escrita directamente en el código (`config.py`).
+- La conexión a la base de datos ahora depende exclusivamente de la variable de entorno `DATABASE_URL`, siguiendo las mejores prácticas de seguridad.
+- Se actualizó toda la documentación para reflejar el nuevo método seguro de gestión de credenciales.
+
 ## [1.3.1] - 2025-08-15
 
 ### Fixed
