@@ -14,27 +14,30 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
-from .utils import _build_tickets_query, calculate_time_remaining, apply_sorting_to_query
+from .utils import _build_tickets_query, calculate_time_remaining, apply_sorting_to_query, generate_prefix
 
 tickets_bp = Blueprint('tickets', __name__)
 
 def generate_ticket_id():
-    """Generate unique ticket ID in format TH-YYYY-XXX"""
+    """Generate unique ticket ID in format TH-PREFIX-YYYY-XXX"""
     current_year = datetime.now().year
+    clinic_prefix = generate_prefix(current_user.clinic.name).upper()
     
-    year_prefix = f"TH-{current_year}-"
+    year_prefix = f"TH-{clinic_prefix}-{current_year}-"
     last_ticket = Ticket.query.filter(
         Ticket.id.like(f"{year_prefix}%"),
         Ticket.clinic_id == current_user.clinic_id
     ).order_by(Ticket.id.desc()).first()
     
     if last_ticket:
-        last_number = int(last_ticket.id.split('-')[-1])
+        # Extract the numeric part of the ID for incrementing
+        last_number_str = last_ticket.id.split('-')[-1]
+        last_number = int(last_number_str)
         new_number = last_number + 1
     else:
         new_number = 1
     
-    return f"TH-{current_year}-{new_number:03d}"
+    return f"TH-{clinic_prefix}-{current_year}-{new_number:03d}"
 
 def calculate_time_remaining(fpa):
     """Calculate detailed time remaining until FPA."""
@@ -446,7 +449,6 @@ def export_excel():
         'surgery': request.args.get('surgery', ''),
         'date_from': request.args.get('date_from', ''),
         'date_to': request.args.get('date_to', ''),
-        'compliance': request.args.get('compliance', '')
     }
     query = _build_tickets_query(filters)
     tickets = query.order_by(Ticket.created_at.desc()).all()

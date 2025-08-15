@@ -1,14 +1,5 @@
-# Backlog de Correcciones y Mejoras
+1 - Revisión y Simplificación de Estados de Ticket: COMPLETADO - Se ha refactorizado todo el código para eliminar el estado 'Cerrado' y la lógica de cumplimiento. El sistema ahora maneja los estados 'Vigente', 'Anulado' y 'Vencido' (de forma dinámica). Se corrigieron bugs relacionados con la inicialización de la base de datos (`flask reset-db`) y la generación de IDs de tickets para que sean únicos por clínica. La aplicación es funcional con este nuevo esquema de estados.
 
-Aquí se listan las tareas pendientes para mejorar y corregir la aplicación Tickethome.
+2 - C:\Users\jonathan.segura\Desktop\codebase.from.git\opciones_a_ajustar.png en la opcion de modificar FPA debe consultar nueva fecha, rango horario de 2 horas, razón (tal como ahora) y la justificación texto libre opcional. y la opción de anular; pero la opcion de cerrar ticket ya no se considera
 
-### Tareas de Corrección
-1.  **Ordenamiento en Tablas de Tickets:** `Completado` - Se centralizó y corrigió la lógica de ordenamiento.
-2.  **Generación de PDF:** `Completado` - Se reparó la generación de PDF, manejando errores de estilos y datos nulos.
-3.  **Bloques Horarios de Alta:** `Completado` - Se modificó la creación de datos para generar bloques de 2 horas.
-
-### Mejoras y Tareas Incompletas
-4.  **Poblar Razones Estandarizadas:** `Completado` - Se añadieron razones por defecto para agilizar el uso.
-5.  **Poblar más Tickets:** `Completado` - Se aumentó el número de tickets de prueba con datos variados.
-6.  **Corregir Menú de Columnas:** `Completado` - Se añadió Alpine.js para reparar la interactividad del menú.
-7.  **Añadir Bloque Horario a PDF:** `Completado` - Se agregó el bloque horario de alta al PDF exportado.
+3 - El sistema debe permitir máximo 5 modificaciones de fecha estimada de alta. Siempre que se habla de una fecha estimada de alta es una fecha más un rango horario de alta de 2 horas, tal como cuando se crea un nuevo ticket. En la opción de exportación de tikets debe salir toda la información posible y deben estar las columnas para las 5 modificaciones de FPA, y el reporte siempre traerá los 5 campos de registro de modificaciones, y por cada una es la nueva fecha, nuevo bloque, usuario, motivo personalizado y campo de texto libre.

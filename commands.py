@@ -6,12 +6,7 @@ import re
 import random
 import os
 from flask import current_app
-
-def generate_prefix(clinic_name):
-    """Generates a short, unique prefix from a clinic name."""
-    name_parts = clinic_name.replace("Clínica RedSalud", "").strip().lower()
-    prefix = re.sub(r'[^a-z]', '', name_parts)[:4]
-    return prefix
+from routes.utils import generate_prefix
 
 def seed_db():
     """Initialize the database with default data for all clinics."""
@@ -169,13 +164,13 @@ def seed_db():
 
     # Create a variety of Tickets for testing
     print("Creating sample tickets...")
-    ticket_counter = 1
     is_production = os.environ.get('K_SERVICE') is not None
     num_tickets_per_clinic = 2 if is_production else 15
 
     for clinic in all_clinics:
         prefix = generate_prefix(clinic.name)
         clinic_data = created_items[clinic.id]
+        ticket_counter = 1 # Reset counter for each clinic
         
         if not all([clinic_data['patients'], clinic_data['surgeries'], clinic_data['techniques'], clinic_data['doctors']]):
             print(f"Skipping ticket creation for {clinic.name} due to missing master data.")
@@ -210,13 +205,8 @@ def seed_db():
                 status='Vigente'
             )
             
-            # Randomly set some tickets to closed or annulled
-            if i % 4 == 0:
-                ticket.status = 'Cerrado'
-                ticket.closed_at = pavilion_end_time + timedelta(days=overnight_stays, hours=random.randint(-5, 5))
-                ticket.actual_discharge_date = ticket.closed_at
-                ticket.compliance_status = 'compliant' if ticket.actual_discharge_date <= ticket.current_fpa else 'non_compliant'
-            elif i % 7 == 0:
+            # Randomly set some tickets to be annulled
+            if i % 7 == 0:
                 ticket.status = 'Anulado'
                 ticket.annulled_at = pavilion_end_time + timedelta(days=1)
                 ticket.annulled_by = f'admin_{prefix}'

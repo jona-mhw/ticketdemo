@@ -80,11 +80,14 @@
                     {% endif %}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap" data-column-name="Estado">
+                    {% set is_expired = ticket.time_remaining and ticket.time_remaining.expired %}
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                        {% if ticket.status == 'Vigente' %}bg-blue-100 text-blue-800
-                        {% elif ticket.status == 'Cerrado' %}bg-green-100 text-green-800
-                        {% else %}bg-red-100 text-red-800{% endif %}">
-                        {{ ticket.status }}
+                        {% if ticket.status == 'Vigente' and is_expired %}bg-yellow-100 text-yellow-800
+                        {% elif ticket.status == 'Vigente' %}bg-blue-100 text-blue-800
+                        {% elif ticket.status == 'Anulado' %}bg-red-100 text-red-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {% if ticket.status == 'Vigente' and is_expired %}Vencido
+                        {% else %}{{ ticket.status }}{% endif %}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-column-name="Creado">

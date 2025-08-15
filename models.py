@@ -171,11 +171,6 @@ class Ticket(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_by = db.Column(db.String(80), nullable=False)
     
-    closed_at = db.Column(db.DateTime, nullable=True)
-    closed_reason = db.Column(db.String(500), nullable=True)
-    actual_discharge_date = db.Column(db.DateTime, nullable=True)
-    compliance_status = db.Column(db.String(20), nullable=True)
-    
     annulled_at = db.Column(db.DateTime, nullable=True)
     annulled_reason = db.Column(db.String(500), nullable=True)
     annulled_by = db.Column(db.String(80), nullable=True)

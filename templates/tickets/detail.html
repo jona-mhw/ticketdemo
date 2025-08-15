@@ -354,11 +354,6 @@ document.addEventListener('DOMContentLoaded', function() {
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     const dateString = now.toISOString().slice(0, 16);
     
-    const actualDischargeInput = document.getElementById('actual_discharge_date');
-    if (actualDischargeInput) {
-        actualDischargeInput.value = dateString;
-    }
-    
     const newFpaInput = document.getElementById('new_fpa');
     if (newFpaInput) {
         newFpaInput.value = dateString;

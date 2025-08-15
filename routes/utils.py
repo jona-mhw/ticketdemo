@@ -1,6 +1,13 @@
 from models import db, Ticket, Patient, Surgery, Doctor
 from datetime import datetime, timedelta
 from flask_login import current_user
+import re
+
+def generate_prefix(clinic_name):
+    """Generates a short, unique prefix from a clinic name."""
+    name_parts = clinic_name.replace("Clínica RedSalud", "").strip().lower()
+    prefix = re.sub(r'[^a-z]', '', name_parts)[:4]
+    return prefix
 
 def _build_tickets_query(filters):
     """Builds a ticket query based on a dictionary of filters."""
@@ -44,8 +51,7 @@ def _build_tickets_query(filters):
         except (ValueError, TypeError):
             pass
 
-    if filters.get('compliance'):
-        query = query.filter(Ticket.compliance_status == filters['compliance'])
+    
 
     return query
 

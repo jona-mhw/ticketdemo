@@ -6,7 +6,7 @@
 {% block content %}
 <div class="space-y-6">
     <!-- KPIs Cards - Primary Row -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="p-5">
                 <div class="flex items-center">
@@ -21,26 +21,6 @@
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Tickets Vigentes</dt>
                             <dd class="text-lg font-medium text-gray-900">{{ kpis.active_tickets }}</dd>
-                        </dl>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Tickets Cerrados</dt>
-                            <dd class="text-lg font-medium text-gray-900">{{ kpis.closed_tickets }}</dd>
                         </dl>
                     </div>
                 </div>
@@ -202,85 +182,6 @@
         </div>
     </div>
 
-    <!-- Enhanced Compliance Analysis -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    Análisis de Cumplimiento
-                </h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-green-600">{{ compliance_stats.compliant_percentage }}%</div>
-                        <div class="text-sm text-gray-500">Cumplimiento FPA</div>
-                        <div class="text-xs text-gray-400">({{ compliance_stats.compliant_count }} tickets)</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-red-600">{{ compliance_stats.non_compliant_percentage }}%</div>
-                        <div class="text-sm text-gray-500">No Cumplimiento</div>
-                        <div class="text-xs text-gray-400">({{ compliance_stats.non_compliant_count }} tickets)</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-blue-600">{{ compliance_stats.average_stay_hours }}</div>
-                        <div class="text-sm text-gray-500">Promedio Hrs</div>
-                        <div class="text-xs text-gray-400">Estancia real</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-purple-600">{{ compliance_stats.average_stay_days }}</div>
-                        <div class="text-sm text-gray-500">Promedio Días</div>
-                        <div class="text-xs text-gray-400">Estancia real</div>
-                    </div>
-                </div>
-                
-                <!-- Compliance Chart -->
-                <div class="mt-6">
-                    <h4 class="text-sm font-medium text-gray-900 mb-2">Tendencia de Cumplimiento (Últimos 6 meses)</h4>
-                    <div class="relative h-48">
-                        <canvas id="complianceChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Surgery Statistics -->
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    Top 5 Cirugías
-                </h3>
-                <div class="space-y-3">
-                    {% for surgery in surgery_stats %}
-                    <div class="flex items-center justify-between">
-                        <div class="flex-1">
-                            <div class="text-sm font-medium text-gray-900">{{ surgery.name }}</div>
-                            <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                <div class="bg-primary h-2 rounded-full" style="width: {{ (surgery.ticket_count / surgery_stats[0].ticket_count * 100) if surgery_stats else 0 }}%"></div>
-                            </div>
-                        </div>
-                        <div class="ml-4 text-sm font-medium text-gray-500">
-                            {{ surgery.ticket_count }}
-                        </div>
-                    </div>
-                    {% endfor %}
-                    
-                    {% if not surgery_stats %}
-                    <div class="text-center py-4">
-                        <p class="text-sm text-gray-500">No hay datos de cirugías</p>
-                    </div>
-                    {% endif %}
-                </div>
-                
-                <!-- Surgery Distribution Chart -->
-                <div class="mt-6">
-                    <h4 class="text-sm font-medium text-gray-900 mb-2">Distribución de Cirugías</h4>
-                    <div class="relative h-48">
-                        <canvas id="surgeryChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Recent Activity and Modification Stats -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Recent Activity -->
@@ -300,8 +201,8 @@
                         <div class="flex-shrink-0 flex flex-col items-end">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                 {% if ticket.status == 'Vigente' %}bg-blue-100 text-blue-800
-                                {% elif ticket.status == 'Cerrado' %}bg-green-100 text-green-800
-                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {% elif ticket.status == 'Anulado' %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
                                 {{ ticket.status }}
                             </span>
                             <a href="{{ url_for('tickets.detail', ticket_id=ticket.id) }}" 
@@ -384,12 +285,11 @@ const statusCtx = document.getElementById('statusChart').getContext('2d');
 const statusChart = new Chart(statusCtx, {
     type: 'doughnut',
     data: {
-        labels: ['Vigentes', 'Cerrados', 'Anulados'],
+        labels: ['Vigentes', 'Anulados'],
         datasets: [{
-            data: [{{ kpis.active_tickets }}, {{ kpis.closed_tickets }}, {{ kpis.annulled_tickets }}],
+            data: [{{ kpis.active_tickets }}, {{ kpis.annulled_tickets }}],
             backgroundColor: [
                 '#3B82F6',  // Blue for Vigente
-                '#10B981',  // Green for Cerrado
                 '#EF4444'   // Red for Anulado
             ],
             borderWidth: 2,
@@ -436,44 +336,6 @@ const weeklyChart = new Chart(weeklyCtx, {
                 beginAtZero: true,
                 ticks: {
                     stepSize: 1
-                }
-            }
-        }
-    }
-});
-
-// Compliance Trend Chart
-const complianceCtx = document.getElementById('complianceChart').getContext('2d');
-const complianceChart = new Chart(complianceCtx, {
-    type: 'line',
-    data: {
-        labels: chartData.monthly_compliance.map(item => item.month),
-        datasets: [{
-            label: 'Cumplimiento FPA (%)',
-            data: chartData.monthly_compliance.map(item => item.rate),
-            borderColor: '#10B981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 100,
-                ticks: {
-                    callback: function(value) {
-                        return value + '%';
-                    }
                 }
             }
         }
