@@ -1,19 +1,13 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, make_response, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, Ticket, Patient, Surgery, Technique, StayAdjustmentCriterion, FpaModification, StandardizedReason, Doctor, DischargeTimeSlot
+from models import (
+    db, Ticket, Patient, Surgery, Technique, StayAdjustmentCriterion, 
+    FpaModification, StandardizedReason, Doctor, DischargeTimeSlot,
+    TICKET_STATUS_VIGENTE, TICKET_STATUS_ANULADO,
+    REASON_CATEGORY_MODIFICATION, REASON_CATEGORY_ANNULMENT
+)
 from datetime import datetime, timedelta
 import json
-import io
-import csv
-from reportlab.lib.pagesizes import letter, A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
-import openpyxl
-from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
-from openpyxl.utils import get_column_letter
 from .utils import _build_tickets_query, calculate_time_remaining, apply_sorting_to_query, generate_prefix
 
 tickets_bp = Blueprint('tickets', __name__)
@@ -419,7 +413,7 @@ def export_pdf(ticket_id):
     if ticket.status in ['Anulado']:
         story.append(p(f"Información de {ticket.status}", 'CustomSubTitle'))
         info_data = []
-        if ticket.status == 'Anulado': # Anulado
+        if ticket.status == TICKET_STATUS_ANULADO: # Anulado
             info_data.extend([
                 [h("Fecha de Anulación"), p(ticket.annulled_at.strftime('%d/%m/%Y %H:%M') if ticket.annulled_at else 'N/A')],
                 [h("Anulado por"), p(ticket.annulled_by)],

@@ -13,3 +13,5 @@
 7 - Mejorar vista de visualizador: COMPLETADO - Se ha añadido un botón o toggle en la vista del perfil "visualizador" para ocultar/mostrar los filtros y la opción de ocultar columnas, permitiendo una vista de monitor más limpia.
 
 8 - mover la solucion de base de datos de sqllite a supabase postgres: COMPLETADO - Se ha migrado la base de datos de SQLite a una instancia de PostgreSQL hosteada en Supabase. Se actualizó la configuración de la aplicación, se instaló el conector `psycopg2-binary` y se probó la conexión, creación y población de la base de datos remota exitosamente.
+
+9 - Refactorizar el código para mejorar la consistencia y legibilidad, facilitando la colaboración y el traspaso entre diferentes instancias de IA.

@@ -35,7 +35,7 @@ def login():
                 db.session.rollback()
 
             flash(f'¡Bienvenido, {user.username}!', 'success')
-            if user.role == 'visualizador':
+            if user.role == ROLE_VISUALIZADOR:
                 return redirect(url_for('visualizador.dashboard'))
             return redirect(url_for('dashboard.index'))
         else:

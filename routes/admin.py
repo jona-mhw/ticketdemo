@@ -149,7 +149,7 @@ def create_user():
 def toggle_user(user_id):
     user = User.query.filter_by(id=user_id, clinic_id=current_user.clinic_id).first_or_404()
     
-    if user.username == 'admin':
+    if user.username == ROLE_ADMIN:
         flash('No se puede desactivar el usuario administrador principal.', 'error')
         return redirect(url_for('admin.users'))
     

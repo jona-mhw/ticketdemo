@@ -34,12 +34,14 @@ def create_app():
     from routes.tickets import tickets_bp
     from routes.admin import admin_bp
     from routes.visualizador import visualizador_bp
+    from routes.exports import exports_bp
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
     app.register_blueprint(tickets_bp, url_prefix='/tickets')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(visualizador_bp, url_prefix='/visualizador')
+    app.register_blueprint(exports_bp, url_prefix='/export')
     
     # Root route
     @app.route('/')

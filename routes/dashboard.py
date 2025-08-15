@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
-from models import Ticket, Surgery, FpaModification, db
+from models import Ticket, Surgery, FpaModification, db, TICKET_STATUS_VIGENTE, TICKET_STATUS_ANULADO
 from sqlalchemy import func
 from datetime import datetime, timedelta
 import json
@@ -33,7 +33,7 @@ def index():
     ).count()
     
     overdue_tickets = Ticket.query.filter(
-        Ticket.status == 'Vigente',
+        Ticket.status == TICKET_STATUS_VIGENTE,
         Ticket.current_fpa < now,
         Ticket.clinic_id == clinic_id
     ).count()
