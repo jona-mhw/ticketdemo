@@ -3,3 +3,5 @@
 2 - Modificar FPA: COMPLETADO - Se ha actualizado la funcionalidad para modificar la FPA. Ahora se solicita la nueva fecha, un rango horario de 2 horas, la razón y una justificación opcional. Se ha eliminado la opción de cerrar el ticket.
 
 3 - Exportación de Tickets: COMPLETADO - Se ha actualizado la exportación de tickets en formato Excel y PDF para incluir el historial de modificaciones de la FPA. Ahora se muestran hasta 5 modificaciones con su fecha, bloque horario, usuario, motivo y justificación.
+
+4 - Unificar formato de FPA: COMPLETADO - Se ha modificado la visualización de la FPA en toda la aplicación para que muestre siempre la fecha y el rango horario. El cálculo del countdown se ha verificado y funciona correctamente con la primera hora del rango.

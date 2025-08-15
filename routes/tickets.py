@@ -336,7 +336,7 @@ def export_pdf(ticket_id):
     ticket_data = [
         [h("Estado"), p(ticket.status)],
         [h("FPA Inicial"), p(ticket.initial_fpa.strftime('%d/%m/%Y %H:%M'))],
-        [h("FPA Actual"), p(ticket.current_fpa.strftime('%d/%m/%Y %H:%M'))],
+        [h("FPA Actual"), p(f"{ticket.current_fpa.strftime('%d/%m/%Y')} {ticket.discharge_time_slot.name if ticket.discharge_time_slot else ''}")],
         [h("Noches de Estancia"), p(ticket.overnight_stays)],
         [h("Creado por"), p(ticket.created_by)],
         [h("Fecha de Creación"), p(ticket.created_at.strftime('%d/%m/%Y %H:%M'))],
@@ -391,7 +391,7 @@ def export_pdf(ticket_id):
             mod_data.append([
                 p(mod.modified_at.strftime('%d/%m/%Y %H:%M')),
                 p(mod.previous_fpa.strftime('%d/%m/%Y %H:%M')),
-                p(mod.new_fpa.strftime('%d/%m/%Y %H:%M')),
+                p(f"{mod.new_fpa.strftime('%d/%m/%Y')} {slot_name}"),
                 p(slot_name),
                 p(mod.modified_by),
                 p(mod.reason),
@@ -470,7 +470,7 @@ def export_excel():
             ticket.technique.name,
             ticket.attending_doctor.name if ticket.attending_doctor else 'N/A',
             ticket.initial_fpa.strftime('%Y-%m-%d %H:%M'),
-            ticket.current_fpa.strftime('%Y-%m-%d %H:%M'),
+            f"{ticket.current_fpa.strftime('%Y-%m-%d')} {ticket.discharge_time_slot.name if ticket.discharge_time_slot else ''}",
             ticket.overnight_stays,
             ticket.created_by,
             ticket.created_at.strftime('%Y-%m-%d %H:%M')
@@ -486,7 +486,7 @@ def export_excel():
                 slot_name = slot.name if slot else "N/A"
                 
                 row.extend([
-                    mod.new_fpa.strftime('%Y-%m-%d %H:%M'),
+                    f"{mod.new_fpa.strftime('%Y-%m-%d')} {slot_name}",
                     slot_name,
                     mod.modified_by,
                     mod.reason,

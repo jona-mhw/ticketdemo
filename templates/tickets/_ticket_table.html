@@ -64,7 +64,8 @@
                     <div class="text-sm text-gray-500">{{ ticket.surgery.specialty }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap" data-column-name="FPA Actual">
-                    <div class="text-sm text-gray-900">{{ ticket.current_fpa.strftime('%d/%m/%Y %H:%M') }}</div>
+                    <div class="text-sm text-gray-900">{{ ticket.current_fpa.strftime('%d/%m/%Y') }}</div>
+                    <div class="text-sm text-gray-500">{{ ticket.discharge_time_slot.name if ticket.discharge_time_slot else 'N/A' }}</div>
                     {% if ticket.get_modification_count() > 0 %}
                     <div class="text-xs text-orange-600">{{ ticket.get_modification_count() }} modificación(es)</div>
                     {% endif %}
