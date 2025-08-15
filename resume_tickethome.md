@@ -1,4 +1,3 @@
-
 # Resumen del Proyecto Tickethome
 
 ## Descripción General
@@ -50,14 +49,21 @@ Se utiliza un flujo de trabajo simple centrado en la rama `master`:
 El despliegue se realiza a través de un único comando de `gcloud`:
 
 ```bash
-gcloud run deploy tickethome-demo --source . --region us-central1 --allow-unauthenticated
+gcloud run deploy tickethome-demo --source . --region us-central1 --allow-unauthenticated --set-env-vars="DATABASE_URL=sqlite:////app/demo_tickethome.db"
 ```
 
-Este comando empaqueta el código fuente y lo despliega en Google Cloud Run. La aplicación en producción se conecta a la base de datos de Supabase configurada.
+Este comando empaqueta el código fuente y lo despliega en Google Cloud Run. La aplicación en producción se conecta a la base de datos de demo empaquetada en la imagen.
 
 
 ## Estado Actual
 
-El proyecto ha alcanzado un hito importante con la migración de su base de datos de SQLite a PostgreSQL en Supabase. Esto mejora significativamente la escalabilidad y robustez del sistema, alineándolo con las prácticas de producción estándar.
+El proyecto ha alcanzado un hito importante con la migración de su base de datos de SQLite a PostgreSQL en Supabase y la posterior refactorización del código para mejorar la consistencia y legibilidad. La aplicación es completamente funcional y el backlog de tareas críticas de desarrollo está completo.
 
-La aplicación es completamente funcional con la nueva infraestructura de base de datos. El backlog de tareas críticas de desarrollo está completo.
+
+## Próximos Pasos
+
+Los próximos pasos se centrarán en la mejora continua de la aplicación, incluyendo:
+
+*   **Añadir pruebas unitarias:** Implementar pruebas para asegurar la calidad y estabilidad del código.
+*   **Documentación:** Mejorar la documentación del código y de la API.
+*   **Nuevas funcionalidades:** Implementar nuevas características según las necesidades del cliente.

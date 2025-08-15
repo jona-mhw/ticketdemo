@@ -1,3 +1,13 @@
+## [1.3.1] - 2025-08-15
+
+### Fixed
+- Se corrigió un error en el despliegue a Google Cloud Run que impedía que la aplicación se iniciara correctamente debido a que la base de datos de demo no se incluía en la imagen de Docker.
+- Se solucionó un error en el login que ocurría cuando un usuario con el rol de 'Visualizador' intentaba iniciar sesión.
+- Se corrigió un error en el archivo `requirements.txt` que impedía la correcta instalación de las dependencias.
+
+### Changed
+- Se actualizó el archivo `.gitignore` para excluir el archivo `demo_tickethome.db` del control de versiones.
+
 ## [1.3.0] - 2025-08-15
 
 ### Changed

@@ -14,4 +14,4 @@
 
 8 - mover la solucion de base de datos de sqllite a supabase postgres: COMPLETADO - Se ha migrado la base de datos de SQLite a una instancia de PostgreSQL hosteada en Supabase. Se actualizó la configuración de la aplicación, se instaló el conector `psycopg2-binary` y se probó la conexión, creación y población de la base de datos remota exitosamente.
 
-9 - Refactorizar el código para mejorar la consistencia y legibilidad, facilitando la colaboración y el traspaso entre diferentes instancias de IA.
+9 - Refactorizar el código para mejorar la consistencia y legibilidad, facilitando la colaboración y el traspaso entre diferentes instancias de IA.: COMPLETADO - Se ha centralizado la lógica de consulta de tickets en una función única y reutilizable. Se ha mejorado la estructura del proyecto y se han corregido errores de despliegue y de lógica en la aplicación.
