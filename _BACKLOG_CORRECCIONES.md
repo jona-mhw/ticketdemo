@@ -2,4 +2,4 @@
 
 2 - Modificar FPA: COMPLETADO - Se ha actualizado la funcionalidad para modificar la FPA. Ahora se solicita la nueva fecha, un rango horario de 2 horas, la razón y una justificación opcional. Se ha eliminado la opción de cerrar el ticket.
 
-3 - El sistema debe permitir máximo 5 modificaciones de fecha estimada de alta. Siempre que se habla de una fecha estimada de alta es una fecha más un rango horario de alta de 2 horas, tal como cuando se crea un nuevo ticket. En la opción de exportación de tikets debe salir toda la información posible y deben estar las columnas para las 5 modificaciones de FPA, y el reporte siempre traerá los 5 campos de registro de modificaciones, y por cada una es la nueva fecha, nuevo bloque, usuario, motivo personalizado y campo de texto libre.
+3 - Exportación de Tickets: COMPLETADO - Se ha actualizado la exportación de tickets en formato Excel y PDF para incluir el historial de modificaciones de la FPA. Ahora se muestran hasta 5 modificaciones con su fecha, bloque horario, usuario, motivo y justificación.

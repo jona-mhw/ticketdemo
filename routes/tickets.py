@@ -376,17 +376,34 @@ def export_pdf(ticket_id):
     # --- Modification History ---
     if ticket.modifications:
         story.append(p("Historial de Modificaciones", 'CustomSubTitle'))
-        for mod in ticket.modifications:
-            mod_text = f"""
-            <b>Fecha:</b> {mod.modified_at.strftime('%d/%m/%Y %H:%M')} por <b>{mod.modified_by or 'N/A'}</b><br/>
-            <b>FPA Anterior:</b> {mod.previous_fpa.strftime('%d/%m/%Y %H:%M')}<br/>
-            <b>FPA Nueva:</b> {mod.new_fpa.strftime('%d/%m/%Y %H:%M')}<br/>
-            <b>Razón:</b> {mod.reason or 'N/A'}<br/>
-            """
-            if mod.justification:
-                mod_text += f"<b>Justificación:</b> {mod.justification}"
-            story.append(p(mod_text))
-            story.append(Spacer(1, 0.1*inch))
+        
+        mod_data = [[
+            h('Fecha'), h('FPA Anterior'), h('FPA Nueva'), h('Bloque'), 
+            h('Usuario'), h('Motivo'), h('Justificación')
+        ]]
+        
+        modifications = sorted(ticket.modifications, key=lambda m: m.modified_at)
+
+        for mod in modifications:
+            slot = DischargeTimeSlot.query.filter_by(id=mod.ticket.discharge_slot_id).first()
+            slot_name = slot.name if slot else "N/A"
+
+            mod_data.append([
+                p(mod.modified_at.strftime('%d/%m/%Y %H:%M')),
+                p(mod.previous_fpa.strftime('%d/%m/%Y %H:%M')),
+                p(mod.new_fpa.strftime('%d/%m/%Y %H:%M')),
+                p(slot_name),
+                p(mod.modified_by),
+                p(mod.reason),
+                p(mod.justification)
+            ])
+
+        story.append(Table(mod_data, colWidths=[0.8*inch, 0.8*inch, 0.8*inch, 1*inch, 0.8*inch, 1*inch, 1.2*inch], style=TableStyle([
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('BACKGROUND', (0,0), (-1,0), colors.lightgrey)
+        ])))
+        story.append(Spacer(1, 0.2*inch))
     
     # --- Closure/Annulment Info ---
     if ticket.status in ['Anulado']:
@@ -421,16 +438,69 @@ def export_excel():
     }
     query = _build_tickets_query(filters)
     tickets = query.order_by(Ticket.created_at.desc()).all()
+    
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Reporte Tickets"
-    headers = ['N° Ticket', 'Estado', 'RUT Paciente', 'Nombre Completo', 'Cirugía', 'FPA Actual']
+    
+    headers = [
+        'N° Ticket', 'Estado', 'RUT Paciente', 'Nombre Completo', 'Cirugía', 
+        'Técnica', 'Médico', 'FPA Inicial', 'FPA Actual', 'Noches de Estancia',
+        'Creado Por', 'Fecha Creación'
+    ]
+    
+    for i in range(1, 6):
+        headers.extend([
+            f'Fecha Modificación {i}',
+            f'Bloque Modificación {i}',
+            f'Usuario Modificación {i}',
+            f'Motivo Modificación {i}',
+            f'Justificación Modificación {i}'
+        ])
+        
     ws.append(headers)
+    
     for ticket in tickets:
-        ws.append([ticket.id, ticket.status, ticket.patient.rut, ticket.patient.full_name, ticket.surgery.name, ticket.current_fpa.strftime('%Y-%m-%d %H:%M')])
+        row = [
+            ticket.id,
+            ticket.status,
+            ticket.patient.rut,
+            ticket.patient.full_name,
+            ticket.surgery.name,
+            ticket.technique.name,
+            ticket.attending_doctor.name if ticket.attending_doctor else 'N/A',
+            ticket.initial_fpa.strftime('%Y-%m-%d %H:%M'),
+            ticket.current_fpa.strftime('%Y-%m-%d %H:%M'),
+            ticket.overnight_stays,
+            ticket.created_by,
+            ticket.created_at.strftime('%Y-%m-%d %H:%M')
+        ]
+        
+        modifications = sorted(ticket.modifications, key=lambda m: m.modified_at)
+        
+        for i in range(5):
+            if i < len(modifications):
+                mod = modifications[i]
+                # Find the discharge slot for the modification
+                slot = DischargeTimeSlot.query.filter_by(id=mod.ticket.discharge_slot_id).first()
+                slot_name = slot.name if slot else "N/A"
+                
+                row.extend([
+                    mod.new_fpa.strftime('%Y-%m-%d %H:%M'),
+                    slot_name,
+                    mod.modified_by,
+                    mod.reason,
+                    mod.justification
+                ])
+            else:
+                row.extend(['', '', '', '', ''])
+                
+        ws.append(row)
+        
     buffer = io.BytesIO()
     wb.save(buffer)
     buffer.seek(0)
+    
     response = make_response(buffer.getvalue())
     response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     response.headers['Content-Disposition'] = f'attachment; filename="reporte_tickets.xlsx"'
