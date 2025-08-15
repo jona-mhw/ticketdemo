@@ -128,3 +128,4 @@ dmypy.json
 cython_debug/
 log.console  
 service-account-key.json  
+demo_tickethome.db
