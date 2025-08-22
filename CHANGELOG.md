@@ -1,3 +1,16 @@
+## [1.5.0] - 2025-08-21
+
+### Added
+- Se mejoró la vista de "Datos Maestros" para las cirugías. Ahora se muestra una lista de todas las técnicas asociadas a cada cirugía junto con sus respectivas horas base, proporcionando una mayor visibilidad sobre los componentes del cálculo de la FPA.
+
+### Fixed
+- Se corrigió un error crítico en la exportación a Excel que provocaba un fallo en el servidor al generar reportes de tickets que incluían modificaciones de FPA.
+- Se solucionó un problema de visualización en la exportación a PDF, donde la FPA original mostraba una hora exacta en lugar del rango horario correcto (ej. "10:00 - 12:00"). El formato ha sido unificado.
+
+### Changed
+- Se actualizó la guía de respaldo de Supabase (`instrucciones_backup_supabase.html`) con las credenciales específicas de la base de datos para facilitar su uso.
+- Se eliminó el texto "Sistema de Gestión de Tickets Home - Versión MVP" del pie de página de la aplicación para una apariencia más limpia.
+
 ## [1.4.0] - 2025-08-15
 
 ### Added

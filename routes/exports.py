@@ -73,7 +73,7 @@ def create_ticket_pdf_final(ticket):
     original_fpa_data = [
         [Paragraph("Fecha:", styles['FieldLabel']), Paragraph(ticket.initial_fpa.strftime('%d/%m/%Y'), styles['FieldValue'])],
         [Spacer(1, 0.1*inch)],
-        [Paragraph("Hora (entre):", styles['FieldLabel']), Paragraph(ticket.initial_fpa.strftime('%H:%M'), styles['FieldValue'])]
+        [Paragraph("Hora (entre):", styles['FieldLabel']), Paragraph(ticket.discharge_time_slot.name if ticket.discharge_time_slot else '', styles['FieldValue'])]
     ]
     original_fpa_table = Table(original_fpa_data, colWidths=[2*inch, 4.5*inch], rowHeights=[0.5*inch, 0.1*inch, 0.5*inch])
     original_fpa_table.setStyle(TableStyle([
@@ -197,7 +197,7 @@ def export_excel():
         for i in range(5):
             if i < len(modifications):
                 mod = modifications[i]
-                slot = DischargeTimeSlot.query.get(mod.discharge_slot_id)
+                slot = mod.ticket.discharge_time_slot
                 slot_name = slot.name if slot else "N/A"
                 
                 row.extend([

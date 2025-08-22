@@ -14,6 +14,10 @@
 
 8 - mover la solucion de base de datos de sqllite a supabase postgres: COMPLETADO - Se ha migrado la base de datos de SQLite a una instancia de PostgreSQL hosteada en Supabase. Se actualizó la configuración de la aplicación, se instaló el conector `psycopg2-binary` y se probó la conexión, creación y población de la base de datos remota exitosamente.
 
-9 - Refactorizar el código para mejorar la consistencia y legibilidad, facilitando la colaboración y el traspaso entre diferentes instancias de IA.: COMPLETADO - Se ha centralizado la lógica de consulta de tickets en una función única y reutilizable. Se ha mejorado la estructura del proyecto y se han corregido errores de despliegue y de lógica en la aplicación.
+9 - Corregir error en exportación a Excel: La aplicación falla al intentar acceder a 'discharge_slot_id' desde un objeto de modificación de FPA, que no posee dicho atributo. El error es `AttributeError: 'FpaModification' object has no attribute 'discharge_slot_id'`: COMPLETADO
 
-10 - modificaremos el documento exportable en pdf para que ahora sea o mas identico a C:\Users\jonathan.segura\Desktop\codebase.from.git\muestra_pdf_exportable.png pero en formato impresión letter. Tambien es importante que no se descargue el PDF, solo se debe descargar si el usuario lo descarga- sé eficiente pensando en el desploieuge en cloud run. creo que siempre hay que cuidar el computo para que no sea caro- respecto a los campos, veo que tiene para modificaciones. si el ticket no tiene, estará en blanco. - COMPLETADO
+10 - Unificar formato de hora en PDF: El PDF de un ticket muestra la hora exacta para la FPA original en lugar del bloque horario (ej. "10:00 - 12:00"). Se debe mostrar siempre el bloque horario, tanto para la FPA original como para las modificaciones.: COMPLETADO
+
+11 - Analizar cálculo de estadía y mejorar vista de datos maestros: Investigar cómo se calcula la FPA y los días de estancia (cirugía, técnica, criterios). Modificar la vista de "Datos Maestros" para que junto a cada cirugía se muestren sus horas base asociadas.
+
+12 - Limpiar footer: Eliminar el texto "Sistema de Gestión de Tickets Home - Versión MVP" del pie de página de la aplicación.

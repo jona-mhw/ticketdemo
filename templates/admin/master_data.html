@@ -36,6 +36,7 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Especialidad</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Técnicas y Horas Base</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                     </tr>
@@ -45,6 +46,17 @@
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ surgery.name }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ surgery.specialty }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {% if surgery.techniques %}
+                                <ul class="list-disc list-inside">
+                                {% for tech in surgery.techniques %}
+                                    <li>{{ tech.name }} ({{ tech.base_stay_hours }}h)</li>
+                                {% endfor %}
+                                </ul>
+                            {% else %}
+                                Sin técnicas
+                            {% endif %}
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                 {% if surgery.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
