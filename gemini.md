@@ -43,14 +43,15 @@ Nuestro flujo de trabajo con Git es simple y efectivo, centrado en la rama `mast
 
 ### 2.3. Despliegue a Google Cloud Run
 
-1.  **Actualizar Base de Datos de Demo:** Antes de desplegar, es **crucial** actualizar la base de datos de demo (`demo_tickethome.db`) con los últimos cambios de la base de datos local (`instance/tickethome.db`). Esto se hace con el comando `copy .\instance\tickethome.db .\demo_tickethome.db` (en Windows).
-2.  **Comando de Despliegue:** El despliegue se realiza con un único comando de `gcloud`:
+El despliegue a Google Cloud Run es un proceso directo que ahora es más simple gracias a la migración a una base de datos remota.
 
-    ```bash
-    gcloud run deploy tickethome-demo --source . --region us-central1 --allow-unauthenticated --set-env-vars="DATABASE_URL=[TU_DATABASE_URL_DE_SUPABASE]"
-    ```
+**Comando de Despliegue:** El despliegue se realiza con un único comando de `gcloud`. Es **crucial** pasar la URL de la base de datos de Supabase como una variable de entorno para que la aplicación en la nube pueda conectarse a ella.
 
-    Este comando empaqueta el código, la base de datos de demo y lo despliega en Cloud Run, configurando la variable de entorno `DATABASE_URL` para que la aplicación en producción utilice la base de datos empaquetada.
+```bash
+gcloud run deploy tickethome-demo --source . --region us-central1 --allow-unauthenticated --set-env-vars="DATABASE_URL=[TU_DATABASE_URL_DE_SUPABASE]"
+```
+
+Este comando empaqueta el código de la aplicación y lo despliega en Cloud Run. La variable de entorno `DATABASE_URL` configurada en el comando le indica a la aplicación en producción que se conecte directamente a tu base de datos de Supabase, eliminando la necesidad de manejar archivos de base de datos locales durante el despliegue.
 
 ## 3. Mis Aprendizajes y Buenas Prácticas
 

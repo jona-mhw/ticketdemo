@@ -17,7 +17,7 @@ COPY commands.py .
 COPY routes ./routes
 COPY templates ./templates
 COPY static ./static
-COPY demo_tickethome.db .
+
 
 # Expone el puerto 8080 para Gunicorn
 EXPOSE 8080
