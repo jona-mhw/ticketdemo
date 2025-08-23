@@ -11,6 +11,9 @@
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="ID Ticket" data-sort-key="id">
                     ID Ticket
                 </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="RUT" data-sort-key="patient">
+                    RUT
+                </th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Primer Nombre" data-sort-key="patient">Primer Nombre</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Segundo Nombre" data-sort-key="patient">Segundo Nombre</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Apellido Paterno" data-sort-key="patient">Apellido Paterno</th>
@@ -42,6 +45,9 @@
                 {% endif %}
                 <td class="px-6 py-4 whitespace-nowrap" data-column-name="ID Ticket">
                     <div class="text-sm font-medium text-gray-900">{{ ticket.id }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap" data-column-name="RUT">
+                    <div class="text-sm text-gray-900">{{ ticket.patient.rut }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap" data-column-name="Primer Nombre">
                     <div class="text-sm font-medium text-gray-900">{{ ticket.patient.primer_nombre }}</div>

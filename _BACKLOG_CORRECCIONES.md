@@ -22,7 +22,7 @@ Este backlog se ha generado a partir de la transcripción de las grabaciones de 
 
 ### Funcionalidades del Administrador (Admin)
 
-4.  **Edición Completa de Tickets para Admin:**
+4.  **[LISTO] Edición Completa de Tickets para Admin:**
     *   **Tarea:** Permitir al administrador editar todos los campos de un ticket existente.
     *   **Detalle:** El rol de administrador debe poder modificar cualquier dato de un ticket (RUT, nombre, fechas, estado, etc.), incluyendo la capacidad de revertir un ticket anulado. Todos los cambios deben quedar registrados en el log de auditoría.
 
@@ -30,11 +30,11 @@ Este backlog se ha generado a partir de la transcripción de las grabaciones de 
 
 ### Exportación a Excel y Visualización de Datos
 
-5.  **Unificar Comorbilidades en Excel:**
+5.  **[LISTO] Unificar Comorbilidades en Excel:**
     *   **Tarea:** Consolidar todos los criterios de ajuste (comorbilidades) en una sola columna en el archivo Excel.
     *   **Detalle:** En lugar de múltiples columnas, los criterios deben listarse en una única celda, separados por comas.
 
-6.  **Añadir RUT a la Tabla Principal:**
+6.  **[LISTO] Añadir RUT a la Tabla Principal:**
     *   **Tarea:** Hacer visible el RUT del paciente en la tabla principal del listado de tickets.
     *   **Detalle:** Agregar la columna "RUT" a la vista de `tickets/list.html` para una identificación más rápida.
 

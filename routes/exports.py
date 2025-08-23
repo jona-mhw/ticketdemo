@@ -1,6 +1,6 @@
 from flask import Blueprint, request, make_response
 from flask_login import login_required, current_user
-from models import db, Ticket, DischargeTimeSlot, FpaModification
+from models import db, Ticket, DischargeTimeSlot, FpaModification, StayAdjustmentCriterion
 import io
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -162,7 +162,7 @@ def export_excel():
     headers = [
         'N° Ticket', 'Estado', 'RUT Paciente', 'Nombre Completo', 'Cirugía', 
         'Técnica', 'Médico', 'FPA Inicial', 'FPA Actual', 'Noches de Estancia',
-        'Creado Por', 'Fecha Creación'
+        'Criterios de Ajuste', 'Creado Por', 'Fecha Creación'
     ]
     
     for i in range(1, 6):
@@ -177,6 +177,11 @@ def export_excel():
     ws.append(headers)
     
     for ticket in tickets:
+        # Get adjustment criteria names
+        adjustment_ids = ticket.get_stay_adjustment_ids()
+        adjustments = StayAdjustmentCriterion.query.filter(StayAdjustmentCriterion.id.in_(adjustment_ids)).all()
+        adjustment_names = ', '.join([adj.name for adj in adjustments])
+
         row = [
             ticket.id,
             ticket.status,
@@ -188,6 +193,7 @@ def export_excel():
             ticket.initial_fpa.strftime('%Y-%m-%d %H:%M'),
             f"{ticket.current_fpa.strftime('%Y-%m-%d')} {ticket.discharge_time_slot.name if ticket.discharge_time_slot else ''}",
             ticket.overnight_stays,
+            adjustment_names,
             ticket.created_by,
             ticket.created_at.strftime('%Y-%m-%d %H:%M')
         ]

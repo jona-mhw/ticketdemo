@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, User, Surgery, Technique, StayAdjustmentCriterion, StandardizedReason, Doctor, DischargeTimeSlot, Clinic, LoginAudit
+from models import db, User, Surgery, Technique, StayAdjustmentCriterion, StandardizedReason, Doctor, DischargeTimeSlot, Clinic, LoginAudit, Ticket, Patient
 from functools import wraps
 from datetime import datetime, time
+from routes.utils import log_action, _build_tickets_query
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -14,6 +15,91 @@ def admin_required(f):
             return redirect(url_for('dashboard.index'))
         return f(*args, **kwargs)
     return decorated_function
+
+@admin_bp.route('/ticket/<ticket_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_ticket(ticket_id):
+    ticket = Ticket.query.filter_by(id=ticket_id, clinic_id=current_user.clinic_id).first_or_404()
+    
+    if request.method == 'POST':
+        try:
+            # --- Patient Data ---
+            patient = ticket.patient
+            patient_changes = []
+            if patient.rut != request.form['rut']: patient_changes.append(f"RUT de '{patient.rut}' a '{request.form['rut']}'")
+            patient.rut = request.form['rut']
+            if patient.primer_nombre != request.form['primer_nombre']: patient_changes.append(f"Primer Nombre de '{patient.primer_nombre}' a '{request.form['primer_nombre']}'")
+            patient.primer_nombre = request.form['primer_nombre']
+            if patient.segundo_nombre != request.form['segundo_nombre']: patient_changes.append(f"Segundo Nombre de '{patient.segundo_nombre}' a '{request.form['segundo_nombre']}'")
+            patient.segundo_nombre = request.form['segundo_nombre']
+            if patient.apellido_paterno != request.form['apellido_paterno']: patient_changes.append(f"Apellido Paterno de '{patient.apellido_paterno}' a '{request.form['apellido_paterno']}'")
+            patient.apellido_paterno = request.form['apellido_paterno']
+            if patient.apellido_materno != request.form['apellido_materno']: patient_changes.append(f"Apellido Materno de '{patient.apellido_materno}' a '{request.form['apellido_materno']}'")
+            patient.apellido_materno = request.form['apellido_materno']
+            if patient.age != int(request.form['age']): patient_changes.append(f"Edad de '{patient.age}' a '{request.form['age']}'")
+            patient.age = int(request.form['age'])
+            if patient.sex != request.form['sex']: patient_changes.append(f"Sexo de '{patient.sex}' a '{request.form['sex']}'")
+            patient.sex = request.form['sex']
+            
+            if patient_changes:
+                log_action(f"Editó paciente: {', '.join(patient_changes)}", target_id=ticket.id, target_type='Ticket')
+
+            # --- Ticket Data ---
+            ticket_changes = []
+            if ticket.status != request.form['status']:
+                ticket_changes.append(f"Estado de '{ticket.status}' a '{request.form['status']}'")
+                if request.form['status'] == 'Vigente' and ticket.status == 'Anulado':
+                    ticket.annulled_at = None
+                    ticket.annulled_by = None
+                    ticket.annulled_reason = None
+            ticket.status = request.form['status']
+
+            new_pavilion_time = datetime.strptime(request.form['pavilion_end_time'], '%Y-%m-%dT%H:%M')
+            if ticket.pavilion_end_time != new_pavilion_time: ticket_changes.append(f"Hora Admisión de '{ticket.pavilion_end_time.strftime('%Y-%m-%d %H:%M')}' a '{new_pavilion_time.strftime('%Y-%m-%d %H:%M')}'")
+            ticket.pavilion_end_time = new_pavilion_time
+            
+            if ticket.surgery_id != int(request.form['surgery_id']): ticket_changes.append(f"Cirugía ID de '{ticket.surgery_id}' a '{request.form['surgery_id']}'")
+            ticket.surgery_id = int(request.form['surgery_id'])
+
+            if ticket.technique_id != int(request.form['technique_id']): ticket_changes.append(f"Técnica ID de '{ticket.technique_id}' a '{request.form['technique_id']}'")
+            ticket.technique_id = int(request.form['technique_id'])
+
+            doctor_id = request.form.get('doctor_id')
+            new_doctor_id = int(doctor_id) if doctor_id else None
+            if ticket.doctor_id != new_doctor_id: ticket_changes.append(f"Doctor ID de '{ticket.doctor_id}' a '{new_doctor_id}'")
+            ticket.doctor_id = new_doctor_id
+
+            if ticket_changes:
+                log_action(f"Editó ticket: {', '.join(ticket_changes)}", target_id=ticket.id, target_type='Ticket')
+
+            db.session.commit()
+            flash('Ticket actualizado exitosamente.', 'success')
+            return redirect(url_for('tickets.detail', ticket_id=ticket.id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al actualizar el ticket: {str(e)}', 'error')
+
+    clinic_id = current_user.clinic_id
+    surgeries = Surgery.query.filter_by(clinic_id=clinic_id, is_active=True).all()
+    techniques = Technique.query.filter_by(clinic_id=clinic_id, is_active=True).all()
+    doctors = Doctor.query.filter_by(clinic_id=clinic_id, is_active=True).all()
+    
+    return render_template('admin/edit_ticket.html', 
+                           ticket=ticket,
+                           surgeries=surgeries,
+                           techniques=techniques,
+                           doctors=doctors)
+
+@admin_bp.route('/tickets')
+@login_required
+@admin_required
+def manage_tickets():
+    search_query = request.args.get('search', '')
+    filters = {'search': search_query}
+    query = _build_tickets_query(filters)
+    tickets = query.order_by(Ticket.created_at.desc()).all()
+    return render_template('admin/manage_tickets.html', tickets=tickets, search_query=search_query)
 
 @admin_bp.route('/')
 @login_required

@@ -1,7 +1,22 @@
-from models import db, Ticket, Patient, Surgery, Doctor
+from models import db, Ticket, Patient, Surgery, Doctor, ActionAudit
 from datetime import datetime, timedelta
 from flask_login import current_user
 import re
+
+def log_action(action, target_id=None, target_type=None):
+    """Logs an action performed by the current user."""
+    if not current_user.is_authenticated:
+        return
+    
+    log_entry = ActionAudit(
+        user_id=current_user.id,
+        username=current_user.username,
+        clinic_id=current_user.clinic_id,
+        action=action,
+        target_id=str(target_id) if target_id else None,
+        target_type=target_type
+    )
+    db.session.add(log_entry)
 
 def generate_prefix(clinic_name):
     """Generates a short, unique prefix from a clinic name."""
