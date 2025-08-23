@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, User, Surgery, Specialty, StayAdjustmentCriterion, StandardizedReason, Doctor, DischargeTimeSlot, Clinic, LoginAudit, Ticket, Patient
+from models import db, User, Surgery, Specialty, StayAdjustmentCriterion, StandardizedReason, Doctor, DischargeTimeSlot, Clinic, LoginAudit, Ticket, Patient, REASON_CATEGORY_ANNULMENT
 from functools import wraps
 from datetime import datetime, time
 from routes.utils import log_action, _build_tickets_query
@@ -47,13 +47,28 @@ def edit_ticket(ticket_id):
 
             # --- Ticket Data ---
             ticket_changes = []
-            if ticket.status != request.form['status']:
-                ticket_changes.append(f"Estado de '{ticket.status}' a '{request.form['status']}'")
-                if request.form['status'] == 'Vigente' and ticket.status == 'Anulado':
+            new_status = request.form['status']
+            if ticket.status != new_status:
+                ticket_changes.append(f"Estado de '{ticket.status}' a '{new_status}'")
+                if new_status == 'Anulado':
+                    annulled_reason = request.form.get('annulled_reason')
+                    if not annulled_reason:
+                        flash('La razón de anulación es obligatoria al cambiar el estado a "Anulado".', 'error')
+                        # We need to reload the page with the form data, so we can't just return redirect
+                        # For simplicity, we will redirect and the user will have to fill again.
+                        # A better implementation would preserve form data.
+                        return redirect(url_for('admin.edit_ticket', ticket_id=ticket.id))
+                    ticket.annulled_at = datetime.utcnow()
+                    ticket.annulled_by = current_user.username
+                    ticket.annulled_reason = annulled_reason
+                    log_action(f"Anuló ticket con razón: {annulled_reason}", target_id=ticket.id, target_type='Ticket')
+                
+                if new_status == 'Vigente' and ticket.status == 'Anulado':
                     ticket.annulled_at = None
                     ticket.annulled_by = None
                     ticket.annulled_reason = None
-            ticket.status = request.form['status']
+            
+            ticket.status = new_status
 
             new_pavilion_time = datetime.strptime(request.form['pavilion_end_time'], '%Y-%m-%dT%H:%M')
             if ticket.pavilion_end_time != new_pavilion_time: ticket_changes.append(f"Hora Admisión de '{ticket.pavilion_end_time.strftime('%Y-%m-%d %H:%M')}' a '{new_pavilion_time.strftime('%Y-%m-%d %H:%M')}'")
@@ -80,11 +95,17 @@ def edit_ticket(ticket_id):
     clinic_id = current_user.clinic_id
     surgeries = Surgery.query.filter_by(clinic_id=clinic_id, is_active=True).all()
     doctors = Doctor.query.filter_by(clinic_id=clinic_id, is_active=True).all()
+    annulment_reasons = StandardizedReason.query.filter_by(
+        category=REASON_CATEGORY_ANNULMENT, 
+        is_active=True, 
+        clinic_id=current_user.clinic_id
+    ).all()
     
     return render_template('admin/edit_ticket.html', 
                            ticket=ticket,
                            surgeries=surgeries,
-                           doctors=doctors)
+                           doctors=doctors,
+                           annulment_reasons=annulment_reasons)
 
 @admin_bp.route('/tickets')
 @login_required

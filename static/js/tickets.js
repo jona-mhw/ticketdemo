@@ -1,4 +1,22 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // Format RUT input
+    const rutInput = document.getElementById('rut');
+    if (rutInput) {
+        rutInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9kK.-]/g, '');
+            value = value.replace(/\./g, '').replace(/-/g, '');
+
+            if (value.length > 1) {
+                let body = value.slice(0, -1);
+                let dv = value.slice(-1).toUpperCase();
+                body = new Intl.NumberFormat('es-CL').format(body);
+                e.target.value = `${body}-${dv}`;
+            } else {
+                e.target.value = value;
+            }
+        });
+    }
+
     // 1. Column Visibility
     const table = document.getElementById('tickets-table');
     if (!table) return;

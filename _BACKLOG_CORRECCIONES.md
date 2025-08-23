@@ -1,70 +1,54 @@
-# Backlog de Mejoras y Correcciones (22-08-2025)
-
-Este backlog se ha generado a partir de la transcripción de las grabaciones de audio proporcionadas.
+Claro, aquí tienes un backlog generado a partir de las nuevas actividades que mencionaste, en un formato claro y organizado.
 
 ---
 
-### Gestión de Tickets y Documentos Impresos
+### **Backlog de Nuevas Actividades y Correcciones**
 
-1.  **[LISTO] Modificación de Alta Médica en Impreso:**
-    *   **Tarea:** Ampliar el espacio de la firma del médico en el ticket impreso.
-    *   **Detalle:** Añadir un campo de "Notas Adicionales" para que el médico pueda anotar a mano cambios en la fecha/hora de alta, sirviendo como respaldo físico para futuras modificaciones en el sistema.
-
-2.  **[LISTO] Privacidad en Ticket Impreso:**
-    *   **Tarea:** Ocultar la razón de modificación del alta en el ticket impreso.
-    *   **Detalle:** La justificación de un cambio (ej. "complicación médica") no debe ser visible en el documento físico para proteger la privacidad del paciente.
-
-3.  **[LISTO] Deshabilitar Impresión para Tickets Anulados:**
-    *   **Tarea:** Impedir la impresión de tickets con estado "Anulado".
-    *   **Detalle:** La opción de "Imprimir" o "Exportar PDF" debe estar deshabilitada o no visible para los tickets que ya han sido anulados.
+A continuación se detallan las nuevas tareas a desarrollar para la aplicación, basadas en los requerimientos discutidos.
 
 ---
 
-### Funcionalidades del Administrador (Admin)
+#### **1. Mejoras en la Interfaz de Usuario (UI) - Listado de Tickets**
 
-4.  **[LISTO] Edición Completa de Tickets para Admin:**
-    *   **Tarea:** Permitir al administrador editar todos los campos de un ticket existente.
-    *   **Detalle:** El rol de administrador debe poder modificar cualquier dato de un ticket (RUT, nombre, fechas, estado, etc.), incluyendo la capacidad de revertir un ticket anulado. Todos los cambios deben quedar registrados en el log de auditoría.
-
----
-
-### Exportación a Excel y Visualización de Datos
-
-5.  **[LISTO] Unificar Comorbilidades en Excel:**
-    *   **Tarea:** Consolidar todos los criterios de ajuste (comorbilidades) en una sola columna en el archivo Excel.
-    *   **Detalle:** En lugar de múltiples columnas, los criterios deben listarse en una única celda, separados por comas.
-
-6.  **[LISTO] Añadir RUT a la Tabla Principal:**
-    *   **Tarea:** Hacer visible el RUT del paciente en la tabla principal del listado de tickets.
-    *   **Detalle:** Agregar la columna "RUT" a la vista de `tickets/list.html` para una identificación más rápida.
+*   **Tarea:** [HECHO] Hacer fijas las columnas principales en la tabla de tickets.
+*   **Descripción:** En el listado principal de tickets, las columnas **"Detalles"**, **"FPA actual"**, **"Horas restantes"** y **"Estado"**, junto con el **"ID de ticket"** y el **"RUT"**, deben permanecer fijas (visibles) al hacer scroll horizontal. El resto de las columnas se podrán desplazar de izquierda a derecha.
 
 ---
 
-### Búsqueda y Filtros
+#### **2. Funcionalidad - Edición de Tickets**
 
-7.  **[LISTO] Búsqueda Flexible por RUT:**
-    *   **Tarea:** Mejorar el campo de búsqueda de RUT para que sea más flexible.
-    *   **Detalle:** El sistema debe ser capaz de encontrar a un paciente por su RUT aunque se ingrese sin puntos y sin guion/dígito verificador. El sistema debería formatear la entrada internamente.
-
-8.  **[LISTO] Claridad en Filtros de Fecha:**
-    *   **Tarea:** Etiquetar claramente los filtros de búsqueda por fecha.
-    *   **Detalle:** Los campos de filtro de fecha deben especificar a qué fecha se refieren (ej. "Fecha de Cirugía", "Fecha de Alta Proyectada", "Fecha de Admisión").
+*   **Tarea:** [HECHO] Permitir la modificación del campo "Estado" en la edición de un ticket.
+*   **Descripción:** Se debe agregar la funcionalidad para que un usuario pueda cambiar el estado de un ticket directamente desde la vista de edición. El objetivo principal es poder marcar un ticket como **"Anulado"**. Se debe evaluar si esta acción debe requerir obligatoriamente una modificación o justificación en el campo FPA para mantener la consistencia de los datos.
 
 ---
 
-### Lógica de Creación y Cálculo de Tickets
+#### **3. Mejoras de Usabilidad (UX) - Formato de RUT Chileno**
 
-9.  **[LISTO] Renombrar Campo de Fecha de Inicio:**
-    *   **Tarea:** Cambiar el nombre del campo "Fecha y hora de pabellón".
-    *   **Detalle:** Renombrar a "Fecha y hora de admisión", ya que es el punto de partida real para los cálculos de estadía.
+*   **Tarea:** [HECHO] Implementar formato automático para el campo RUT al crear un usuario.
+*   **Descripción:** El campo de ingreso de RUT debe formatear automáticamente el número a medida que el usuario escribe, agregando los puntos como separadores de miles y el guion antes del dígito verificador (ej: de `175115114` a `17.511.511-4`). Esta funcionalidad debe ser consistente con la búsqueda de pacientes ya implementada.
 
-10. **[LISTO] Cálculo Automático del Bloque Horario de Alta:**
-    *   **Tarea:** Eliminar la selección manual del "Bloque horario de alta" y hacerlo un campo calculado que entregarà un bloque de hora de salida, no una hora especifica
-    *   **Detalle:** El bloque horario debe calcularse automáticamente basándose en la `Fecha y hora de admisión` + `Horas de estadía de la cirugía/técnica` + `Horas de criterios de ajuste`. Si por ejemplo el calculo da FPA a las 16:45 horas, el rango de salida será entre 14:45 y 16:45. Osea que se deja como fin del bloque de 2 horas la FPA, pero se debe expresar en rango de horas en la impresion, como ya hemos visto antes
+---
 
-11.  **[LISTO] mover ubicacion donde se muetra el càlculo de estadìa mientras se competan los datos del ticket -++:**
-    *   **Tarea:** ajuste estetico a como se muetra al usuario el càlculo de FPA mientras se completa el ticket . 
-    *   **Detalle:**actualmente està al final del sitio y me gustaria que se muetre de forma estàtica en la parte inferior mientras se completa el fomrulario
+#### **4. Mejoras en la Interfaz de Usuario (UI) - Orden en la Edición**
 
-12. **[LISTO] Relacionar cirugia y especialidad:**
-    *   ya es lo que necesito en esta tarea es ya no trabajar con cirugía y una columna adicional para seleccionar la técnica ahora la cirugía se llamará con su nombre de técnica eso quiere decir que esta cirugía va a ser la que está asociada a una cantidad de horas y a esas horas finalmente se les agrega los ajustes y desde ahí en el cálculo esto es lo definitivo entonces pienso en que como se piensa en una cirugía y una especialidad asociada a un nombre sin nada de código o algo similar que muestre el usuario digamos código definido por el sistema de salud me refiero no ya no incremental bueno el punto es que lo que necesito acá es que al seleccionar la cirugía al querer crear una cirugía se pregunte siempre la especialidad creo que vamos a necesitar un mantenedor de especialidades y además que al momento de estar creando el ticket lo primero que pregunta sea la especialidad y desde ahí se desprendan cuáles son las cirugías en el nombre de la cirugía va a decir entonces el texto completo y desde ahí yo voy a manejar manualmente las técnicas así que olvídate del concepto de técnica porque ahora yo voy a indicar por ejemplo el nombre de la cirugía laparoscopia gastrectomía laparoscópica entonces ahí tengo las dos cosas y es un único campo entonces ahí es donde se debe entender cómo se relaciona este cambio con los reportes con lo que se ve por pantalla con el cálculo con cómo se muestra el cálculo con todo lo que tenga la aplicación por eso me importa mucho que revises bien a fondo todo
+*   **Tarea:** [HECHO] Priorizar visualmente las opciones "Editar" y "Estado".
+*   **Descripción:** En las vistas o listados donde se puedan editar tickets, mover las opciones o columnas de **"Editar"** y **"Estado"** al principio de la tabla para darles mayor relevancia y facilitar el acceso.
+
+---
+
+#### **5. Corrección Estética - Posición del Menú Hamburguesa**
+
+*   **Tarea:** [HECHO] Corregir la alineación del botón del menú lateral.
+*   **Descripción:** El botón "hamburguesa" que oculta/muestra el menú de la izquierda está mal posicionado. Debe estar visualmente "pegado" al borde del menú que controla, en lugar de estar centrado o alineado con el contenido principal de la página. Su posición debe ser fija y no verse afectada por el zoom del navegador.
+
+---
+
+#### **6. Análisis y Propuesta - Manejo de Datos Históricos**
+
+*   **Tarea:** [HECHO] Crear una presentación que analice el impacto de modificar datos relacionados con tickets antiguos.
+*   **Descripción:** Se necesita un análisis sobre las implicaciones de modificar criterios que afectan a datos históricos (ej. cambiar la "cantidad de horas de estancia" de una cirugía ya registrada).
+*   **Entregable:** Generar un documento **HTML standalone** que funcione como una presentación (estilo PowerPoint). Este debe:
+    1.  Explicar la situación actual y los riesgos para la consistencia de los datos.
+    2.  Proponer diferentes soluciones o arquitecturas para manejar estos cambios.
+    3.  Mostrar cómo cada solución afectaría a un ticket antiguo.
+    4.  El diseño debe incluir un área principal para el "slide" y una sección lateral para "notas del presentador".

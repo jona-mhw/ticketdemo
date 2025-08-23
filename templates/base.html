@@ -72,7 +72,12 @@
     {% if current_user.is_authenticated %}
     <div class="flex h-screen bg-gray-100">
         <!-- Sidebar -->
-        <div id="sidebar" class="flex flex-col bg-white border-r">
+        <div id="sidebar" class="relative flex flex-col bg-white border-r">
+            <!-- Toggle button -->
+            <button id="sidebar-toggle" class="absolute top-5 -right-3 z-20 p-1 rounded-full bg-primary text-white hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+
             <div class="flex flex-col flex-grow pt-5 overflow-y-auto">
                 <div class="flex items-center flex-shrink-0 px-4">
                     <h1 class="text-xl font-bold text-gray-900 sidebar-title">Ticket Home</h1>
@@ -146,10 +151,7 @@
             <header class="bg-white shadow">
                 <div class="max-w-7xl mx-auto flex items-center justify-between h-16">
                     <div class="flex items-center">
-                        <button id="sidebar-toggle" class="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                        </button>
-                        <h2 class="font-semibold text-xl text-gray-800 ml-2">
+                        <h2 class="font-semibold text-xl text-gray-800 ml-8">
                             {% block page_title %}{% endblock %}
                         </h2>
                     </div>

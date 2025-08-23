@@ -4,31 +4,32 @@
         <thead class="bg-gray-50">
             <tr>
                 {% if show_actions %}
-                <th scope="col" class="relative px-6 py-3" data-column-name="Acciones">
+                <th scope="col" class="sticky left-0 bg-gray-50 z-10 px-6 py-3" data-column-name="Acciones">
                     <span class="sr-only">Acciones</span>
                 </th>
                 {% endif %}
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="ID Ticket" data-sort-key="id">
+                <th scope="col" class="sticky bg-gray-50 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="left: {% if show_actions %}110px{% else %}0px{% endif %};" data-column-name="Estado" data-sort-key="status">
+                    Estado
+                </th>
+                <th scope="col" class="sticky bg-gray-50 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="left: {% if show_actions %}220px{% else %}110px{% endif %};" data-column-name="Horas Restantes">
+                    Horas Restantes
+                </th>
+                <th scope="col" class="sticky bg-gray-50 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="left: {% if show_actions %}350px{% else %}240px{% endif %};" data-column-name="FPA Actual" data-sort-key="fpa">
+                    FPA Actual
+                </th>
+                <th scope="col" class="sticky bg-gray-50 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="left: {% if show_actions %}500px{% else %}390px{% endif %};" data-column-name="ID Ticket" data-sort-key="id">
                     ID Ticket
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="RUT" data-sort-key="patient">
+                <th scope="col" class="sticky bg-gray-50 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="left: {% if show_actions %}650px{% else %}540px{% endif %};" data-column-name="RUT" data-sort-key="patient">
                     RUT
                 </th>
+
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Primer Nombre" data-sort-key="patient">Primer Nombre</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Segundo Nombre" data-sort-key="patient">Segundo Nombre</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Apellido Paterno" data-sort-key="patient">Apellido Paterno</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Apellido Materno" data-sort-key="patient">Apellido Materno</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Médico Tratante" data-sort-key="doctor">Médico Tratante</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Cirugía" data-sort-key="surgery">Cirugía</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="FPA Actual" data-sort-key="fpa">
-                    FPA Actual
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Horas Restantes">
-                    Horas Restantes
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Estado" data-sort-key="status">
-                    Estado
-                </th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column-name="Creado" data-sort-key="created_at">
                     Creado
                 </th>
@@ -38,17 +39,46 @@
             {% for ticket in tickets %}
             <tr class="hover:bg-gray-50">
                 {% if show_actions %}
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" data-column-name="Acciones">
+                <td class="sticky left-0 bg-white z-10 px-6 py-4 whitespace-nowrap text-right text-sm font-medium" data-column-name="Acciones">
                     <a href="{{ url_for('tickets.detail', ticket_id=ticket.id) }}" 
                        class="text-primary hover:text-opacity-80">Ver detalle</a>
                 </td>
                 {% endif %}
-                <td class="px-6 py-4 whitespace-nowrap" data-column-name="ID Ticket">
+                <td class="sticky bg-white z-10 px-6 py-4 whitespace-nowrap" style="left: {% if show_actions %}110px{% else %}0px{% endif %};" data-column-name="Estado">
+                    {% set is_expired = ticket.time_remaining and ticket.time_remaining.expired %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if ticket.status == 'Vigente' and is_expired %}bg-yellow-100 text-yellow-800
+                        {% elif ticket.status == 'Vigente' %}bg-blue-100 text-blue-800
+                        {% elif ticket.status == 'Anulado' %}bg-red-100 text-red-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {% if ticket.status == 'Vigente' and is_expired %}Vencido
+                        {% else %}{{ ticket.status }}{% endif %}
+                    </span>
+                </td>
+                <td class="sticky bg-white z-10 px-6 py-4 whitespace-nowrap" style="left: {% if show_actions %}220px{% else %}110px{% endif %};" data-column-name="Horas Restantes">
+                    {% if ticket.status == 'Vigente' and ticket.current_fpa %}
+                        <span class="countdown-timer text-sm font-medium"
+                              data-fpa="{{ ticket.current_fpa.isoformat() }}">
+                            <!-- El tiempo restante se calculará aquí -->
+                        </span>
+                    {% else %}
+                        <span class="text-sm text-gray-400">-</span>
+                    {% endif %}
+                </td>
+                <td class="sticky bg-white z-10 px-6 py-4 whitespace-nowrap" style="left: {% if show_actions %}350px{% else %}240px{% endif %};" data-column-name="FPA Actual">
+                    <div class="text-sm text-gray-900">{{ ticket.current_fpa.strftime('%d/%m/%Y') }}</div>
+                    <div class="text-sm text-gray-500">{{ ticket.discharge_time_slot.name if ticket.discharge_time_slot else 'N/A' }}</div>
+                    {% if ticket.get_modification_count() > 0 %}
+                    <div class="text-xs text-orange-600">{{ ticket.get_modification_count() }} modificación(es)</div>
+                    {% endif %}
+                </td>
+                <td class="sticky bg-white z-10 px-6 py-4 whitespace-nowrap" style="left: {% if show_actions %}500px{% else %}390px{% endif %};" data-column-name="ID Ticket">
                     <div class="text-sm font-medium text-gray-900">{{ ticket.id }}</div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap" data-column-name="RUT">
+                <td class="sticky bg-white z-10 px-6 py-4 whitespace-nowrap" style="left: {% if show_actions %}650px{% else %}540px{% endif %};" data-column-name="RUT">
                     <div class="text-sm text-gray-900">{{ ticket.patient.rut }}</div>
                 </td>
+
                 <td class="px-6 py-4 whitespace-nowrap" data-column-name="Primer Nombre">
                     <div class="text-sm font-medium text-gray-900">{{ ticket.patient.primer_nombre }}</div>
                 </td>
@@ -68,34 +98,6 @@
                 <td class="px-6 py-4 whitespace-nowrap" data-column-name="Cirugía">
                     <div class="text-sm text-gray-900">{{ ticket.surgery.name }}</div>
                     <div class="text-sm text-gray-500">{{ ticket.surgery.specialty.name }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap" data-column-name="FPA Actual">
-                    <div class="text-sm text-gray-900">{{ ticket.current_fpa.strftime('%d/%m/%Y') }}</div>
-                    <div class="text-sm text-gray-500">{{ ticket.discharge_time_slot.name if ticket.discharge_time_slot else 'N/A' }}</div>
-                    {% if ticket.get_modification_count() > 0 %}
-                    <div class="text-xs text-orange-600">{{ ticket.get_modification_count() }} modificación(es)</div>
-                    {% endif %}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap" data-column-name="Horas Restantes">
-                    {% if ticket.status == 'Vigente' and ticket.current_fpa %}
-                        <span class="countdown-timer text-sm font-medium"
-                              data-fpa="{{ ticket.current_fpa.isoformat() }}">
-                            <!-- El tiempo restante se calculará aquí -->
-                        </span>
-                    {% else %}
-                        <span class="text-sm text-gray-400">-</span>
-                    {% endif %}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap" data-column-name="Estado">
-                    {% set is_expired = ticket.time_remaining and ticket.time_remaining.expired %}
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                        {% if ticket.status == 'Vigente' and is_expired %}bg-yellow-100 text-yellow-800
-                        {% elif ticket.status == 'Vigente' %}bg-blue-100 text-blue-800
-                        {% elif ticket.status == 'Anulado' %}bg-red-100 text-red-800
-                        {% else %}bg-gray-100 text-gray-800{% endif %}">
-                        {% if ticket.status == 'Vigente' and is_expired %}Vencido
-                        {% else %}{{ ticket.status }}{% endif %}
-                    </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-column-name="Creado">
                     {{ ticket.created_at.strftime('%d/%m/%Y') }}

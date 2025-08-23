@@ -105,8 +105,8 @@ Aquí te dejo los puntos técnicos más importantes y las "gotchas" que hemos id
     *   **La forma correcta y segura de hacerlo es usando Secret Manager.** La última vez, guié a Jonathan para que guardara la credencial en Google Secret Manager y actualizara el comando de despliegue para usar `--update-secrets`. Este es el método que debes favorecer.
 
 3.  **El Cálculo de la FPA (Fecha Probable de Alta):**
-    *   Analizamos esto a fondo. La fórmula es: `FPA = Hora de Fin de Pabellón + Horas Base de la Técnica + Suma de Horas de los Criterios de Ajuste`.
-    *   **Punto Clave:** Las horas base de estadía **NO** están en el modelo `Surgery`, sino en el modelo `Technique`. Una cirugía puede tener múltiples técnicas, y cada una, sus propias horas. Esto es fundamental para entender la lógica de negocio.
+    *   Analizamos esto a fondo. La fórmula es: `FPA = Hora de Fin de Pabellón + Horas Base de la Cirugía + Suma de Horas de los Criterios de Ajuste`.
+    *   **Punto Clave:** Las horas base de estadía (`base_stay_hours`) están definidas directamente en el modelo `Surgery`. El concepto de un modelo `Technique` separado fue refactorizado y consolidado dentro de `Surgery` para simplificar la gestión de datos maestros.
 
 4.  **Estructura del Código:**
     *   La aplicación está bien modularizada con **Flask Blueprints** (`routes/`).

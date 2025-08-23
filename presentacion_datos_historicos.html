@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Impacto - Modificación de Datos Históricos</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f7f9;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .presentation-container {
+            display: flex;
+            width: 95%;
+            max-width: 1200px;
+            height: 80vh;
+            max-height: 700px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .slide {
+            display: none;
+            flex-grow: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+        .slide.active {
+            display: block;
+        }
+        .presenter-notes {
+            width: 300px;
+            flex-shrink: 0;
+            background-color: #e9eef2;
+            padding: 20px;
+            border-left: 1px solid #d1d9e0;
+            overflow-y: auto;
+        }
+        .presenter-notes h3 {
+            margin-top: 0;
+            color: #0d7a71;
+            border-bottom: 2px solid #0d7a71;
+            padding-bottom: 5px;
+        }
+        .navigation {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .nav-button {
+            background-color: #0d7a71;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+            font-size: 16px;
+        }
+        .nav-button:disabled {
+            background-color: #a0a0a0;
+            cursor: not-allowed;
+        }
+        h1, h2 {
+            color: #14B8A6;
+        }
+        h1 { font-size: 2.5em; margin-bottom: 10px; }
+        h2 { font-size: 1.8em; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-top: 30px; }
+        p, li { font-size: 1.1em; color: #444; }
+        code {
+            background-color: #e8e8e8;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-size: 0.9em;
+        }
+        .scenario {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .scenario > div {
+            flex: 1;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .scenario h3 {
+            margin-top: 0;
+            color: #c0392b;
+        }
+        .highlight {
+            color: #c0392b;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="presentation-container">
+        <div id="slide-container">
+            <!-- Slide 1: Title -->
+            <div class="slide active" data-notes="Iniciar la presentación agradeciendo a los asistentes. Establecer el objetivo de la reunión: discutir un riesgo técnico importante y proponer una solución robusta para garantizar la fiabilidad de los datos a largo plazo.">
+                <h1>Análisis de Impacto: Modificación de Datos Históricos</h1>
+                <p>Propuestas para garantizar la integridad de los datos en Tickethome.</p>
+                <hr style="margin: 40px 0;">
+                <p><strong>Presenta:</strong> Gemini (Asistente de IA)</p>
+                <p><strong>Fecha:</strong> 23 de Agosto, 2025</p>
+            </div>
+
+            <!-- Slide 2: The Problem -->
+            <div class="slide" data-notes="Explicar que este es un problema común en sistemas donde las 'reglas' (como precios o, en este caso, horas de estadía) cambian con el tiempo. La clave es que los registros transaccionales (tickets) deben ser inmunes a cambios futuros en las reglas que se usaron para crearlos. La foto del momento de la transacción debe ser inmutable.">
+                <h2>El Problema: La Mutabilidad de las Reglas de Negocio</h2>
+                <p><strong>Situación Actual:</strong> Los datos maestros, como las horas de estadía de una cirugía o los criterios de ajuste, son editables para permitir flexibilidad operativa.</p>
+                <p><strong>El Riesgo:</strong> Si se modifica un dato maestro (ej. se cambian las horas base de una "Apendicectomía" de 24 a 30), todos los tickets históricos asociados a esa cirugía podrían recalcular su FPA si la lógica se basa en una consulta directa (<code>JOIN</code>) a la tabla de cirugías.</p>
+                <p class="highlight"><strong>Impacto Directo:</strong> Esto corrompe la data histórica. Un ticket que en su momento fue "cumplido" podría aparecer como "no cumplido" (o viceversa) sin que nadie lo haya modificado directamente. Se pierde la trazabilidad y la confiabilidad de los reportes.</p>
+            </div>
+
+            <!-- Slide 3: Example -->
+            <div class="slide" data-notes="Recorrer el ejemplo paso a paso. Enfatizar que el cambio en los datos maestros es silencioso y no deja una traza de auditoría en el ticket mismo, lo que lo hace muy peligroso para el análisis de datos históricos. El reporte de 'cumplimiento de FPA' se volvería inútil.">
+                <h2>Ejemplo Práctico del Problema</h2>
+                <div class="scenario">
+                    <div>
+                        <h3>ANTES (Ticket creado en Enero)</h3>
+                        <ul>
+                            <li>Ticket: <code>TH-SANT-2025-001</code></li>
+                            <li>Cirugía: Apendicectomía</li>
+                            <li>Horas Base: <span class="highlight">24</span></li>
+                            <li>Fin Pabellón: 01-01-2025 10:00</li>
+                            <li>FPA Calculada: 02-01-2025 10:00</li>
+                            <li>Alta Real: 02-01-2025 09:00</li>
+                            <li style="font-weight: bold; color: green;">Resultado: Cumplió</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>DESPUÉS (Admin cambia horas base a 30 en Agosto)</h3>
+                        <ul>
+                            <li>Ticket: <code>TH-SANT-2025-001</code> (visto en Septiembre)</li>
+                            <li>Cirugía: Apendicectomía</li>
+                            <li>Horas Base: <span class="highlight">30</span> (leídas de la tabla maestra)</li>
+                            <li>Fin Pabellón: 01-01-2025 10:00</li>
+                            <li>FPA (recalculada): 02-01-2025 16:00</li>
+                            <li>Alta Real: 02-01-2025 09:00</li>
+                            <li style="font-weight: bold; color: red;">Resultado: ¡No Cumplió! (Aunque el alta fue temprana)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 4: Proposed Solution -->
+            <div class="slide" data-notes="Esta es la práctica estándar de la industria para este tipo de problemas. Poner ejemplos como una factura de compra: no se guarda solo el ID del producto, se guarda el nombre y el precio del producto al momento de la venta. El ticket debe ser como una factura: un registro autocontenido de un evento en un punto del tiempo.">
+                <h2>Solución: Desnormalización Controlada (Snapshotting)</h2>
+                <p><strong>Concepto:</strong> En el momento de crear un ticket, no solo guardamos el ID del dato maestro (ej. <code>surgery_id</code>), sino que también "congelamos" (copiamos) los valores críticos para el cálculo en el propio registro del ticket.</p>
+                
+                <h3>Campos a Añadir al Modelo `Ticket`</h3>
+                <ul>
+                    <li><code>surgery_name_snapshot</code> (String)</li>
+                    <li><code>surgery_base_hours_snapshot</code> (Integer)</li>
+                    <li><code>adjustment_criteria_snapshot</code> (JSON/Text) - Un campo para guardar los criterios aplicados y sus horas en ese momento. Ej: <code>[{"name": "Paciente > 80", "hours": 12}]</code></li>
+                </ul>
+
+                <p><strong>Ventaja Principal:</strong> El ticket se vuelve autocontenido e inmutable. Los cambios futuros a los datos maestros no afectan los registros pasados.</p>
+                <p><strong>Desventaja:</strong> Ligero aumento en el almacenamiento debido a la redundancia de datos, pero el beneficio en integridad y confiabilidad es inmenso.</p>
+            </div>
+
+            <!-- Slide 5: Architecture -->
+            <div class="slide" data-notes="Mostrar que el cambio en el código es localizado y se aplica solo en el momento de la creación. Los reportes y vistas que necesiten mostrar datos históricos deberán ser actualizados para usar los campos '_snapshot' en lugar de hacer un JOIN a la tabla maestra.">
+                <h2>Arquitectura de la Solución</h2>
+                <h3>1. Modelo `Ticket` Modificado</h3>
+                <pre><code>class Ticket(db.Model):
+    # ... campos existentes ...
+    id = db.Column(db.String(20), primary_key=True)
+    
+    # --- Campos de Snapshot ---
+    surgery_name_snapshot = db.Column(db.String(200))
+    surgery_base_hours_snapshot = db.Column(db.Integer)
+    adjustment_criteria_snapshot = db.Column(db.Text) # Guarda un JSON
+
+    # --- Foreign Keys (aún útiles para navegación) ---
+    surgery_id = db.Column(db.Integer, db.ForeignKey('surgery.id'))
+    # ...</code></pre>
+
+                <h3>2. Lógica de Creación de Ticket (en `routes/tickets.py`)</h3>
+                <pre><code># Al momento de crear el ticket...
+surgery = Surgery.query.get(surgery_id)
+adjustments = StayAdjustmentCriterion.query.filter(...).all()
+
+new_ticket = Ticket(
+    # ... otros campos ...
+    surgery_id=surgery.id,
+
+    # --- Poblar los campos snapshot ---
+    surgery_name_snapshot=surgery.name,
+    surgery_base_hours_snapshot=surgery.base_stay_hours,
+    adjustment_criteria_snapshot=json.dumps([
+        {'id': a.id, 'name': a.name, 'hours': a.hours_adjustment} 
+        for a in adjustments
+    ])
+)</code></pre>
+            </div>
+
+            <!-- Slide 6: Impact with New Architecture -->
+            <div class="slide" data-notes="Este es el slide más importante. Demuestra que la solución funciona y resuelve el problema de raíz. Resaltar que el campo 'surgery_base_hours_snapshot' no cambia, que es la clave de la solución. La integridad histórica ahora es una garantía.">
+                <h2>Impacto con la Nueva Arquitectura</h2>
+                <div class="scenario">
+                    <div>
+                        <h3>ANTES (Ticket creado en Enero con snapshot)</h3>
+                        <ul>
+                            <li>Ticket: <code>TH-SANT-2025-001</code></li>
+                            <li><code>surgery_id</code>: 5</li>
+                            <li><code>surgery_base_hours_snapshot</code>: <span class="highlight">24</span></li>
+                            <li>FPA Calculada (usando snapshot): 02-01-2025 10:00</li>
+                            <li>Alta Real: 02-01-2025 09:00</li>
+                            <li style="font-weight: bold; color: green;">Resultado: Cumplió</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>DESPUÉS (Admin cambia horas base de Cirugía #5 a 30 en Agosto)</h3>
+                        <ul>
+                            <li>Ticket: <code>TH-SANT-2025-001</code> (visto en Septiembre)</li>
+                            <li><code>surgery_id</code>: 5</li>
+                            <li><code>surgery_base_hours_snapshot</code>: <span class="highlight">24 (¡No cambia!)</span></li>
+                            <li>FPA (leída del cálculo original): 02-01-2025 10:00</li>
+                            <li>Alta Real: 02-01-2025 09:00</li>
+                            <li style="font-weight: bold; color: green;">Resultado: Sigue Cumpliendo</li>
+                        </ul>
+                    </div>
+                </div>
+                <h2 style="margin-top: 30px; border: none; color: green;">Conclusión: La integridad histórica se mantiene.</h2>
+            </div>
+
+            <!-- Slide 7: Summary & Next Steps -->
+            <div class="slide" data-notes="El objetivo de este slide es obtener la aprobación para el enfoque y definir un plan de acción claro. La migración de la base de datos es el paso más delicado y debe ser planificado cuidadosamente.">
+                <h2>Resumen y Próximos Pasos</h2>
+                <h3>Resumen</h3>
+                <ul>
+                    <li>La modificación de datos maestros presenta un <strong>riesgo real</strong> para la integridad de los reportes históricos.</li>
+                    <li>La solución robusta y estándar en la industria es implementar <strong>"snapshotting"</strong> en el momento de la creación del ticket.</li>
+                    <li>Esto asegura que cada ticket sea un registro <strong>autocontenido e inmutable</strong>.</li>
+                </ul>
+
+                <h3>Próximos Pasos Recomendados</h3>
+                <ol>
+                    <li><strong>Aprobar</strong> el enfoque de la arquitectura de snapshotting.</li>
+                    <li><strong>Planificar la migración</strong> de la base de datos para añadir los nuevos campos al modelo <code>Ticket</code>.</li>
+                    <li><strong>Actualizar la lógica</strong> de creación de tickets para guardar los snapshots.</li>
+                    <li><strong>Ajustar las vistas y reportes</strong> para que utilicen los campos snapshot al mostrar o calcular datos históricos.</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="presenter-notes">
+            <h3>Notas del Presentador</h3>
+            <div id="notes-content"></div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button id="prev-btn" class="nav-button">Anterior</button>
+        <span id="slide-counter"></span>
+        <button id="next-btn" class="nav-button">Siguiente</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slides = document.querySelectorAll('.slide');
+            const notesContent = document.getElementById('notes-content');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const slideCounter = document.getElementById('slide-counter');
+            let currentSlide = 0;
+
+            function showSlide(index) {
+                slides.forEach((slide, i) => {
+                    slide.classList.toggle('active', i === index);
+                });
+                notesContent.innerHTML = slides[index].getAttribute('data-notes') || 'No hay notas para este slide.';
+                currentSlide = index;
+                updateNav();
+            }
+
+            function updateNav() {
+                prevBtn.disabled = currentSlide === 0;
+                nextBtn.disabled = currentSlide === slides.length - 1;
+                slideCounter.textContent = `Slide ${currentSlide + 1} de ${slides.length}`;
+            }
+
+            prevBtn.addEventListener('click', () => {
+                if (currentSlide > 0) {
+                    showSlide(currentSlide - 1);
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentSlide < slides.length - 1) {
+                    showSlide(currentSlide + 1);
+                }
+            });
+
+            showSlide(0);
+        });
+    </script>
+
+</body>
+</html>
