@@ -150,10 +150,13 @@
             <!-- Top navigation -->
             <header class="bg-white shadow">
                 <div class="max-w-7xl mx-auto flex items-center justify-between h-16">
-                    <div class="flex items-center">
-                        <h2 class="font-semibold text-xl text-gray-800 ml-8">
-                            {% block page_title %}{% endblock %}
-                        </h2>
+                    <div class="flex items-center flex-1">
+                        
+                        <div class="flex-1">
+                            <h2 class="font-semibold text-xl text-gray-800">
+                                {% block page_title %}{% endblock %}
+                            </h2>
+                        </div>
                     </div>
                     <div class="flex items-center space-x-4 pr-4 sm:pr-6 lg:pr-8">
                         <div class="text-sm text-right">
@@ -188,12 +191,10 @@
             </main>
             
             <!-- Footer -->
-            <footer class="bg-white border-t border-gray-200 px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <p class="text-sm text-gray-600">
-                         
-                    </p>
-                    
+            <footer class="bg-white border-t border-gray-200 px-6 py-3">
+                <div class="text-center text-xs text-gray-500">
+                    <p class="font-semibold">Plataforma Ticket Home 2025</p>
+                    <p>Versión Beta 1.0</p>
                 </div>
             </footer>
         </div>

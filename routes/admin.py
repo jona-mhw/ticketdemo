@@ -141,64 +141,7 @@ def clinics():
     clinics = Clinic.query.all()
     return render_template('admin/clinics.html', clinics=clinics)
 
-@admin_bp.route('/clinics/create', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def create_clinic():
-    if request.method == 'POST':
-        name = request.form.get('name', '').strip()
-        if not name:
-            flash('El nombre de la clínica es obligatorio.', 'error')
-        elif Clinic.query.filter_by(name=name).first():
-            flash('Ya existe una clínica con ese nombre.', 'error')
-        else:
-            try:
-                clinic = Clinic(name=name)
-                db.session.add(clinic)
-                db.session.commit()
-                flash(f'Clínica {name} creada exitosamente.', 'success')
-                return redirect(url_for('admin.clinics'))
-            except Exception as e:
-                db.session.rollback()
-                flash(f'Error al crear la clínica: {str(e)}', 'error')
-    return render_template('admin/clinic_form.html', clinic=None)
 
-@admin_bp.route('/clinics/<int:clinic_id>/edit', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def edit_clinic(clinic_id):
-    clinic = Clinic.query.get_or_404(clinic_id)
-    if request.method == 'POST':
-        name = request.form.get('name', '').strip()
-        is_active = request.form.get('is_active') == 'on'
-        if not name:
-            flash('El nombre de la clínica es obligatorio.', 'error')
-        else:
-            try:
-                clinic.name = name
-                clinic.is_active = is_active
-                db.session.commit()
-                flash(f'Clínica {name} actualizada exitosamente.', 'success')
-                return redirect(url_for('admin.clinics'))
-            except Exception as e:
-                db.session.rollback()
-                flash(f'Error al actualizar la clínica: {str(e)}', 'error')
-    return render_template('admin/clinic_form.html', clinic=clinic)
-
-@admin_bp.route('/clinics/<int:clinic_id>/toggle', methods=['POST'])
-@login_required
-@admin_required
-def toggle_clinic(clinic_id):
-    clinic = Clinic.query.get_or_404(clinic_id)
-    try:
-        clinic.is_active = not clinic.is_active
-        db.session.commit()
-        status = "activada" if clinic.is_active else "desactivada"
-        flash(f'Clínica {clinic.name} {status} exitosamente.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error al cambiar el estado de la clínica: {str(e)}', 'error')
-    return redirect(url_for('admin.clinics'))
 
 @admin_bp.route('/users')
 @login_required

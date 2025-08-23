@@ -7,7 +7,7 @@ from models import (
     DischargeTimeSlot, StandardizedReason, Patient, Ticket,
     ROLE_ADMIN, ROLE_CLINICAL, ROLE_VISUALIZADOR,
     TICKET_STATUS_VIGENTE, TICKET_STATUS_ANULADO,
-    REASON_CATEGORY_MODIFICATION, REASON_CATEGORY_ANNULMENT, REASON_CATEGORY_NON_COMPLIANCE
+    REASON_CATEGORY_MODIFICATION, REASON_CATEGORY_ANNULMENT
 )
 from datetime import datetime, timedelta
 import random
@@ -138,9 +138,6 @@ def _seed_master_data_for_clinic(clinic, prefix, created_items):
             {'reason': 'Paciente transferido a otra unidad', 'category': REASON_CATEGORY_ANNULMENT},
             {'reason': 'Cirugía suspendida/reprogramada', 'category': REASON_CATEGORY_ANNULMENT},
             {'reason': 'Ticket duplicado', 'category': REASON_CATEGORY_ANNULMENT},
-            {'reason': 'Alta voluntaria', 'category': REASON_CATEGORY_NON_COMPLIANCE},
-            {'reason': 'Transferencia a hospital de origen', 'category': REASON_CATEGORY_NON_COMPLIANCE},
-            {'reason': 'Fuga del paciente', 'category': REASON_CATEGORY_NON_COMPLIANCE},
         ]
         for r_data in reasons_data:
             reason = StandardizedReason(reason=r_data['reason'], category=r_data['category'], clinic_id=clinic.id)

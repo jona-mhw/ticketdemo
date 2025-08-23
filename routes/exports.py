@@ -1,5 +1,5 @@
 import json
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
 from flask_login import login_required, current_user
 from models import db, Ticket, Clinic, FpaModification, StayAdjustmentCriterion, StandardizedReason
 from routes.utils import log_action, _build_tickets_query
@@ -12,14 +12,15 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import Paragraph
+from reportlab.lib import colors
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle, Frame, PageTemplate
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 import pytz
 
 exports_bp = Blueprint('exports', __name__)
 
 def create_ticket_pdf_final(ticket):
-    buffer = io.BytesIO()
+    buffer = BytesIO()
     
     # --- Colors ---
     dark_teal = colors.HexColor("#0d7a71")
@@ -78,7 +79,7 @@ def create_ticket_pdf_final(ticket):
     original_fpa_data = [
         [Paragraph("Fecha:", styles['FieldLabel']), Paragraph(ticket.initial_fpa.strftime('%d/%m/%Y'), styles['FieldValue'])],
         [Spacer(1, 0.1*inch)],
-        [Paragraph("Hora (entre):", styles['FieldLabel']), Paragraph(ticket.discharge_time_slot.name if ticket.discharge_time_slot else '', styles['FieldValue'])]
+        [Paragraph("Hora (entre):", styles['FieldLabel']), Paragraph(ticket.discharge_time_slot.name if ticket.discharge_time_slot else ticket.initial_fpa.strftime('%H:%M'), styles['FieldValue'])]
     ]
     original_fpa_table = Table(original_fpa_data, colWidths=[2*inch, 4.5*inch], rowHeights=[0.5*inch, 0.1*inch, 0.5*inch])
     original_fpa_table.setStyle(TableStyle([
@@ -95,7 +96,7 @@ def create_ticket_pdf_final(ticket):
         mod_fpa_data = [
             [Paragraph("Nueva Fecha:", styles['FieldLabel']), Paragraph(last_mod.new_fpa.strftime('%d/%m/%Y'), styles['FieldValue'])],
             [Spacer(1, 0.1*inch)],
-            [Paragraph("Nueva Hora:", styles['FieldLabel']), Paragraph(last_mod.ticket.discharge_time_slot.name if last_mod.ticket.discharge_time_slot else '', styles['FieldValue'])]
+            [Paragraph("Nueva Hora:", styles['FieldLabel']), Paragraph(last_mod.ticket.discharge_time_slot.name if last_mod.ticket.discharge_time_slot else last_mod.new_fpa.strftime('%H:%M'), styles['FieldValue'])]
         ]
         mod_fpa_table = Table(mod_fpa_data, colWidths=[2*inch, 4.5*inch], rowHeights=[0.5*inch, 0.1*inch, 0.5*inch])
         mod_fpa_table.setStyle(TableStyle([
@@ -160,7 +161,7 @@ def export_excel():
     query = _build_tickets_query(filters)
     tickets = query.order_by(Ticket.created_at.desc()).all()
     
-    wb = openpyxl.Workbook()
+    wb = Workbook()
     ws = wb.active
     ws.title = "Reporte Tickets"
     
@@ -232,7 +233,7 @@ def export_excel():
                 
         ws.append(row)
         
-    buffer = io.BytesIO()
+    buffer = BytesIO()
     wb.save(buffer)
     buffer.seek(0)
     

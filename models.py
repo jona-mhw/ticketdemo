@@ -17,7 +17,7 @@ TICKET_STATUS_ANULADO = 'Anulado'
 # Standardized Reason Categories
 REASON_CATEGORY_MODIFICATION = 'modification'
 REASON_CATEGORY_ANNULMENT = 'annulment'
-REASON_CATEGORY_NON_COMPLIANCE = 'non_compliance'
+
 # --- End Constants ---
 
 db = SQLAlchemy()

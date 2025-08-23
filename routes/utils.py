@@ -1,5 +1,5 @@
 from models import db, Ticket, Patient, Surgery, Doctor, ActionAudit
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from datetime import datetime, timedelta
 from flask_login import current_user
 import re
@@ -34,7 +34,10 @@ def _build_tickets_query(filters):
     )
 
     if filters.get('status'):
-        query = query.filter(Ticket.status == filters['status'])
+        if filters['status'] == 'Vigente':
+            query = query.filter(Ticket.status == 'Vigente', Ticket.current_fpa > datetime.now())
+        else:
+            query = query.filter(func.lower(Ticket.status) == func.lower(filters['status']))
 
     if filters.get('search'):
         search_query = filters['search'].strip()

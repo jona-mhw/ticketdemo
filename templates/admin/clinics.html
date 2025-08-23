@@ -6,9 +6,7 @@
 <div class="container mx-auto mt-8">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold text-gray-800">Gestionar Clínicas</h1>
-        <a href="{{ url_for('admin.create_clinic') }}" class="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
-            <i class="fas fa-plus mr-2"></i>Crear Nueva Clínica
-        </a>
+        
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -31,7 +29,7 @@
                         <th class="py-3 px-6 text-left">ID</th>
                         <th class="py-3 px-6 text-left">Nombre</th>
                         <th class="py-3 px-6 text-center">Estado</th>
-                        <th class="py-3 px-6 text-center">Acciones</th>
+                        
                     </tr>
                 </thead>
                 <tbody class="text-gray-700">
@@ -44,18 +42,7 @@
                                 {{ 'Activa' if clinic.is_active else 'Inactiva' }}
                             </span>
                         </td>
-                        <td class="py-3 px-6 text-center">
-                            <a href="{{ url_for('admin.edit_clinic', clinic_id=clinic.id) }}" class="text-primary hover:text-opacity-80 mr-4" title="Editar"><i class="fas fa-edit"></i></a>
-                            <form action="{{ url_for('admin.toggle_clinic', clinic_id=clinic.id) }}" method="POST" class="inline-block">
-                                <button type="submit" class="text-gray-500 hover:text-gray-800" title="{{ 'Desactivar' if clinic.is_active else 'Activar' }}">
-                                    {% if clinic.is_active %}
-                                        <i class="fas fa-toggle-on"></i>
-                                    {% else %}
-                                        <i class="fas fa-toggle-off"></i>
-                                    {% endif %}
-                                </button>
-                            </form>
-                        </td>
+                        
                     </tr>
                     {% else %}
                     <tr>
