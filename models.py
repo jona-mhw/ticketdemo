@@ -29,8 +29,8 @@ class Clinic(db.Model):
 
     # Relationships
     users = db.relationship('User', backref='clinic', lazy=True)
+    specialties = db.relationship('Specialty', backref='clinic', lazy=True)
     surgeries = db.relationship('Surgery', backref='clinic', lazy=True)
-    techniques = db.relationship('Technique', backref='clinic', lazy=True)
     stay_adjustment_criteria = db.relationship('StayAdjustmentCriterion', backref='clinic', lazy=True)
     doctors = db.relationship('Doctor', backref='clinic', lazy=True)
     discharge_time_slots = db.relationship('DischargeTimeSlot', backref='clinic', lazy=True)
@@ -57,24 +57,29 @@ class User(UserMixin, db.Model):
     def is_admin(self):
         return self.role == 'admin'
 
+class Specialty(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    clinic_id = db.Column(db.Integer, db.ForeignKey('clinic.id'), nullable=False)
+    surgeries = db.relationship('Surgery', backref='specialty', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'clinic_id': self.clinic_id
+        }
+
 class Surgery(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
-    specialty = db.Column(db.String(100), nullable=False)
+    base_stay_hours = db.Column(db.Integer, nullable=False)
+    specialty_id = db.Column(db.Integer, db.ForeignKey('specialty.id'), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     applies_ticket_home = db.Column(db.Boolean, default=True)
     is_ambulatory = db.Column(db.Boolean, default=False)
     ambulatory_cutoff_hour = db.Column(db.Integer, nullable=True)
-    clinic_id = db.Column(db.Integer, db.ForeignKey('clinic.id'), nullable=False)
-    
-    techniques = db.relationship('Technique', backref='surgery', lazy=True)
-
-class Technique(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
-    base_stay_hours = db.Column(db.Integer, nullable=False)
-    surgery_id = db.Column(db.Integer, db.ForeignKey('surgery.id'), nullable=False)
-    is_active = db.Column(db.Boolean, default=True)
     clinic_id = db.Column(db.Integer, db.ForeignKey('clinic.id'), nullable=False)
 
     def to_dict(self):
@@ -82,7 +87,7 @@ class Technique(db.Model):
             'id': self.id,
             'name': self.name,
             'base_stay_hours': self.base_stay_hours,
-            'surgery_id': self.surgery_id
+            'specialty_id': self.specialty_id
         }
 
 class StayAdjustmentCriterion(db.Model):
@@ -170,7 +175,6 @@ class Ticket(db.Model):
     id = db.Column(db.String(20), primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=True)
     surgery_id = db.Column(db.Integer, db.ForeignKey('surgery.id'), nullable=True)
-    technique_id = db.Column(db.Integer, db.ForeignKey('technique.id'), nullable=True)
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=True)
     discharge_slot_id = db.Column(db.Integer, db.ForeignKey('discharge_time_slot.id'), nullable=True)
     clinic_id = db.Column(db.Integer, db.ForeignKey('clinic.id'), nullable=False)
@@ -192,7 +196,6 @@ class Ticket(db.Model):
     annulled_by = db.Column(db.String(80), nullable=True)
     
     surgery = db.relationship('Surgery', backref='tickets')
-    technique = db.relationship('Technique', backref='tickets')
     modifications = db.relationship('FpaModification', backref='ticket', lazy=True, cascade='all, delete-orphan')
     
     def get_stay_adjustment_ids(self):
@@ -203,7 +206,8 @@ class Ticket(db.Model):
     def set_stay_adjustment_ids(self, ids):
         self.stay_adjustment_ids = json.dumps(ids)
     
-    def calculate_fpa(self, pavilion_end_time, base_hours, adjustment_hours=0, surgery=None):
+    def calculate_fpa(self, pavilion_end_time, surgery, adjustment_hours=0):
+        base_hours = surgery.base_stay_hours
         total_hours = base_hours + adjustment_hours
         fpa = pavilion_end_time + timedelta(hours=total_hours)
         
@@ -228,6 +232,7 @@ class Ticket(db.Model):
     
     def get_modification_count(self):
         return len(self.modifications)
+
 
 class FpaModification(db.Model):
     id = db.Column(db.Integer, primary_key=True)

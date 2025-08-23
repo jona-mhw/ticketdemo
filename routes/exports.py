@@ -160,8 +160,8 @@ def export_excel():
     ws.title = "Reporte Tickets"
     
     headers = [
-        'N° Ticket', 'Estado', 'RUT Paciente', 'Nombre Completo', 'Cirugía', 
-        'Técnica', 'Médico', 'FPA Inicial', 'FPA Actual', 'Noches de Estancia',
+        'N° Ticket', 'Estado', 'RUT Paciente', 'Nombre Completo', 'Especialidad', 'Cirugía', 
+        'Médico', 'FPA Inicial', 'FPA Actual', 'Noches de Estancia',
         'Criterios de Ajuste', 'Creado Por', 'Fecha Creación'
     ]
     
@@ -187,8 +187,8 @@ def export_excel():
             ticket.status,
             ticket.patient.rut,
             ticket.patient.full_name,
+            ticket.surgery.specialty.name,
             ticket.surgery.name,
-            ticket.technique.name,
             ticket.attending_doctor.name if ticket.attending_doctor else 'N/A',
             ticket.initial_fpa.strftime('%Y-%m-%d %H:%M'),
             f"{ticket.current_fpa.strftime('%Y-%m-%d')} {ticket.discharge_time_slot.name if ticket.discharge_time_slot else ''}",

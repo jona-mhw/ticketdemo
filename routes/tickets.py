@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from models import (
-    db, Ticket, Patient, Surgery, Technique, StayAdjustmentCriterion, 
+    db, Ticket, Patient, Surgery, Specialty, StayAdjustmentCriterion, 
     FpaModification, StandardizedReason, Doctor, DischargeTimeSlot,
     TICKET_STATUS_VIGENTE, TICKET_STATUS_ANULADO,
     REASON_CATEGORY_MODIFICATION, REASON_CATEGORY_ANNULMENT
@@ -74,7 +74,6 @@ def create():
             
             # Surgery data
             surgery_id = int(request.form.get('surgery_id'))
-            technique_id = int(request.form.get('technique_id'))
             pavilion_end_time = datetime.strptime(request.form.get('pavilion_end_time'), '%Y-%m-%dT%H:%M')
             
             doctor_id = request.form.get('doctor_id')
@@ -82,7 +81,7 @@ def create():
             
             adjustment_ids = [int(id) for id in request.form.getlist('adjustment_ids') if id]
             
-            if not all([rut, primer_nombre, apellido_paterno, age, sex, surgery_id, technique_id]):
+            if not all([rut, primer_nombre, apellido_paterno, age, sex, surgery_id]):
                 flash('Todos los campos obligatorios deben ser completados.', 'error')
                 return redirect(url_for('tickets.create'))
             
@@ -96,7 +95,6 @@ def create():
                     flash(f'Ya existe un ticket vigente para el episodio {episode_id}: {existing_ticket.id}', 'error')
                     return redirect(url_for('tickets.create'))
             
-            technique = Technique.query.filter_by(id=technique_id, clinic_id=clinic_id).first_or_404()
             surgery = Surgery.query.filter_by(id=surgery_id, clinic_id=clinic_id).first_or_404()
             
             adjustment_hours = 0
@@ -128,7 +126,7 @@ def create():
             ticket_id = generate_ticket_id()
             
             # Calculate FPA and determine discharge slot
-            fpa, overnight_stays = Ticket().calculate_fpa(pavilion_end_time, technique.base_stay_hours, adjustment_hours, surgery)
+            fpa, overnight_stays = Ticket().calculate_fpa(pavilion_end_time, surgery, adjustment_hours)
             
             discharge_slot = DischargeTimeSlot.query.filter(
                 DischargeTimeSlot.start_time <= fpa.time(),
@@ -137,7 +135,7 @@ def create():
             ).first()
             
             ticket = Ticket(
-                id=ticket_id, patient_id=patient.id, surgery_id=surgery_id, technique_id=technique_id,
+                id=ticket_id, patient_id=patient.id, surgery_id=surgery_id,
                 doctor_id=doctor_id, pavilion_end_time=pavilion_end_time,
                 created_by=current_user.username, clinic_id=clinic_id,
                 initial_fpa=fpa, current_fpa=fpa, overnight_stays=overnight_stays,
@@ -156,18 +154,20 @@ def create():
             db.session.rollback()
             flash(f'Error al crear el ticket: {str(e)}', 'error')
     
+    specialties = Specialty.query.filter_by(is_active=True, clinic_id=clinic_id).all()
     surgeries = Surgery.query.filter_by(is_active=True, applies_ticket_home=True, clinic_id=clinic_id).all()
-    techniques = Technique.query.filter_by(is_active=True, clinic_id=clinic_id).all()
     adjustments = StayAdjustmentCriterion.query.filter_by(is_active=True, clinic_id=clinic_id).all()
     doctors = Doctor.query.filter_by(is_active=True, clinic_id=clinic_id).all()
     
-    techniques_json = [t.to_dict() for t in techniques]
+    surgeries_json = [s.to_dict() for s in surgeries]
     adjustments_json = [a.to_dict() for a in adjustments]
     
     return render_template('tickets/create.html', 
-                         surgeries=surgeries, techniques=techniques, techniques_json=techniques_json,
+                         specialties=specialties, 
+                         surgeries_json=surgeries_json,
                          adjustments=adjustments, adjustments_json=adjustments_json,
                          doctors=doctors)
+
 
 @tickets_bp.route('/<ticket_id>')
 @login_required

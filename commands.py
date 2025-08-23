@@ -1,7 +1,8 @@
 import click
 from flask.cli import with_appcontext
+from sqlalchemy import text
 from models import (
-    db, User, Clinic, Surgery, Technique, StayAdjustmentCriterion, Doctor, 
+    db, User, Clinic, Surgery, Specialty, StayAdjustmentCriterion, Doctor, 
     DischargeTimeSlot, StandardizedReason, Patient, Ticket,
     ROLE_ADMIN, ROLE_CLINICAL, ROLE_VISUALIZADOR,
     TICKET_STATUS_VIGENTE, TICKET_STATUS_ANULADO,
@@ -51,16 +52,32 @@ def _seed_users_for_clinic(clinic, prefix):
             db.session.add(user)
 
 def _seed_master_data_for_clinic(clinic, prefix, created_items):
-    """Seeds all master data (surgeries, doctors, reasons, etc.) for a clinic."""
-    # Surgeries & Techniques
+    """Seeds all master data (specialties, surgeries, doctors, etc.) for a clinic."""
+    # Specialties
+    specialties_data = ['Cirugía General', 'Ginecología', 'Traumatología', 'Cirugía Pediátrica']
+    for spec_name in specialties_data:
+        specialty = Specialty(name=f"{spec_name} ({prefix})", clinic_id=clinic.id)
+        db.session.add(specialty)
+        db.session.flush()
+        created_items[clinic.id]['specialties'].append(specialty)
+
+    # Surgeries
     surgeries_data = [
-        {'name': 'Apendicectomía Laparoscópica', 'specialty': 'Cirugía General', 'is_ambulatory': False},
-        {'name': 'Colecistectomía Laparoscópica', 'specialty': 'Cirugía General', 'is_ambulatory': True, 'ambulatory_cutoff_hour': 14},
+        {'name': 'Apendicectomía Laparoscópica', 'specialty_name': 'Cirugía General', 'base_stay_hours': 24, 'is_ambulatory': False},
+        {'name': 'Colecistectomía Laparoscópica', 'specialty_name': 'Cirugía General', 'base_stay_hours': 48, 'is_ambulatory': True, 'ambulatory_cutoff_hour': 14},
+        {'name': 'Histerectomía Abdominal', 'specialty_name': 'Ginecología', 'base_stay_hours': 72, 'is_ambulatory': False},
+        {'name': 'Artroscopia de Rodilla', 'specialty_name': 'Traumatología', 'base_stay_hours': 8, 'is_ambulatory': True, 'ambulatory_cutoff_hour': 16},
     ]
     for s_data in surgeries_data:
+        # Find the specialty created for this clinic
+        specialty = next((s for s in created_items[clinic.id]['specialties'] if s.name.startswith(s_data['specialty_name'])), None)
+        if not specialty:
+            continue
+
         surgery = Surgery(
             name=f"{s_data['name']} ({prefix})", 
-            specialty=s_data['specialty'], 
+            specialty_id=specialty.id,
+            base_stay_hours=s_data['base_stay_hours'],
             is_ambulatory=s_data['is_ambulatory'], 
             ambulatory_cutoff_hour=s_data.get('ambulatory_cutoff_hour'), 
             clinic_id=clinic.id
@@ -68,11 +85,6 @@ def _seed_master_data_for_clinic(clinic, prefix, created_items):
         db.session.add(surgery)
         db.session.flush()
         created_items[clinic.id]['surgeries'].append(surgery)
-        
-        tech = Technique(name=f'Técnica Estándar ({prefix})', base_stay_hours=24, surgery_id=surgery.id, clinic_id=clinic.id)
-        db.session.add(tech)
-        db.session.flush()
-        created_items[clinic.id]['techniques'].append(tech)
 
     # Doctors
     doctors_data = [
@@ -156,7 +168,7 @@ def _seed_tickets_for_clinic(clinic, prefix, created_items, is_production):
     num_tickets = 2 if is_production else 15
     clinic_data = created_items[clinic.id]
     
-    if not all([clinic_data['patients'], clinic_data['surgeries'], clinic_data['techniques'], clinic_data['doctors']]):
+    if not all([clinic_data['patients'], clinic_data['surgeries'], clinic_data['doctors']]):
         print(f"Skipping ticket creation for {clinic.name} due to missing master data.")
         return
 
@@ -164,17 +176,15 @@ def _seed_tickets_for_clinic(clinic, prefix, created_items, is_production):
         now = datetime.now()
         patient = random.choice(clinic_data['patients'])
         surgery = random.choice(clinic_data['surgeries'])
-        technique = next((t for t in clinic_data['techniques'] if t.surgery_id == surgery.id), random.choice(clinic_data['techniques']))
         doctor = random.choice(clinic_data['doctors'])
         pavilion_end_time = now - timedelta(days=random.randint(0, 30), hours=random.randint(0, 23))
         
-        fpa, overnight_stays = Ticket().calculate_fpa(pavilion_end_time, technique.base_stay_hours, 0, surgery)
+        fpa, overnight_stays = Ticket().calculate_fpa(pavilion_end_time, surgery, 0)
 
         ticket = Ticket(
             id=f'TH-{prefix.upper()}-{now.year}-{i+1:03d}',
             patient_id=patient.id,
             surgery_id=surgery.id,
-            technique_id=technique.id,
             doctor_id=doctor.id,
             pavilion_end_time=pavilion_end_time,
             initial_fpa=fpa,
@@ -212,7 +222,7 @@ def seed_db():
         prefix = generate_prefix(clinic.name)
         print(f"Populating data for {clinic.name} ({prefix})...")
         
-        created_items[clinic.id] = {'surgeries': [], 'techniques': [], 'doctors': [], 'patients': []}
+        created_items[clinic.id] = {'specialties': [], 'surgeries': [], 'doctors': [], 'patients': []}
         
         _seed_users_for_clinic(clinic, prefix)
         _seed_master_data_for_clinic(clinic, prefix, created_items)
@@ -242,8 +252,11 @@ def init_db_command():
 @with_appcontext
 def reset_db_command():
     """Drops all tables and re-initializes the database."""
+    # Temporarily drop the technique table with cascade to solve dependency
+    with db.engine.connect() as con:
+        con.execute(text('DROP TABLE IF EXISTS technique CASCADE'))
+        con.commit()
     
-
     db.drop_all()
     click.echo('Database dropped.')
     db.create_all()

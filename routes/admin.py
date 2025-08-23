@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, User, Surgery, Technique, StayAdjustmentCriterion, StandardizedReason, Doctor, DischargeTimeSlot, Clinic, LoginAudit, Ticket, Patient
+from models import db, User, Surgery, Specialty, StayAdjustmentCriterion, StandardizedReason, Doctor, DischargeTimeSlot, Clinic, LoginAudit, Ticket, Patient
 from functools import wraps
 from datetime import datetime, time
 from routes.utils import log_action, _build_tickets_query
@@ -43,7 +43,7 @@ def edit_ticket(ticket_id):
             patient.sex = request.form['sex']
             
             if patient_changes:
-                log_action(f"Editó paciente: {', '.join(patient_changes)}", target_id=ticket.id, target_type='Ticket')
+                log_action(f"Editó paciente: { ', '.join(patient_changes)}", target_id=ticket.id, target_type='Ticket')
 
             # --- Ticket Data ---
             ticket_changes = []
@@ -62,16 +62,13 @@ def edit_ticket(ticket_id):
             if ticket.surgery_id != int(request.form['surgery_id']): ticket_changes.append(f"Cirugía ID de '{ticket.surgery_id}' a '{request.form['surgery_id']}'")
             ticket.surgery_id = int(request.form['surgery_id'])
 
-            if ticket.technique_id != int(request.form['technique_id']): ticket_changes.append(f"Técnica ID de '{ticket.technique_id}' a '{request.form['technique_id']}'")
-            ticket.technique_id = int(request.form['technique_id'])
-
             doctor_id = request.form.get('doctor_id')
             new_doctor_id = int(doctor_id) if doctor_id else None
             if ticket.doctor_id != new_doctor_id: ticket_changes.append(f"Doctor ID de '{ticket.doctor_id}' a '{new_doctor_id}'")
             ticket.doctor_id = new_doctor_id
 
             if ticket_changes:
-                log_action(f"Editó ticket: {', '.join(ticket_changes)}", target_id=ticket.id, target_type='Ticket')
+                log_action(f"Editó ticket: { ', '.join(ticket_changes)}", target_id=ticket.id, target_type='Ticket')
 
             db.session.commit()
             flash('Ticket actualizado exitosamente.', 'success')
@@ -82,13 +79,11 @@ def edit_ticket(ticket_id):
 
     clinic_id = current_user.clinic_id
     surgeries = Surgery.query.filter_by(clinic_id=clinic_id, is_active=True).all()
-    techniques = Technique.query.filter_by(clinic_id=clinic_id, is_active=True).all()
     doctors = Doctor.query.filter_by(clinic_id=clinic_id, is_active=True).all()
     
     return render_template('admin/edit_ticket.html', 
                            ticket=ticket,
                            surgeries=surgeries,
-                           techniques=techniques,
                            doctors=doctors)
 
 @admin_bp.route('/tickets')
@@ -109,7 +104,7 @@ def index():
         'users': User.query.filter_by(is_active=True, clinic_id=current_user.clinic_id).count(),
         'doctors': Doctor.query.filter_by(is_active=True, clinic_id=current_user.clinic_id).count(),
         'surgeries': Surgery.query.filter_by(is_active=True, clinic_id=current_user.clinic_id).count(),
-        'techniques': Technique.query.filter_by(is_active=True, clinic_id=current_user.clinic_id).count(),
+        'specialties': Specialty.query.filter_by(is_active=True, clinic_id=current_user.clinic_id).count(),
         'criteria': StayAdjustmentCriterion.query.filter_by(is_active=True, clinic_id=current_user.clinic_id).count(),
         'time_slots': DischargeTimeSlot.query.filter_by(is_active=True, clinic_id=current_user.clinic_id).count(),
         'reasons': StandardizedReason.query.filter_by(is_active=True, clinic_id=current_user.clinic_id).count(),
@@ -257,31 +252,68 @@ def toggle_user(user_id):
 @admin_required
 def master_data():
     clinic_id = current_user.clinic_id
+    specialties = Specialty.query.filter_by(clinic_id=clinic_id).all()
     surgeries = Surgery.query.filter_by(clinic_id=clinic_id).all()
-    techniques = Technique.query.filter_by(clinic_id=clinic_id).all()
     adjustments = StayAdjustmentCriterion.query.filter_by(clinic_id=clinic_id).all()
     reasons = StandardizedReason.query.filter_by(clinic_id=clinic_id).all()
     doctors = Doctor.query.filter_by(clinic_id=clinic_id).all()
     
     return render_template('admin/master_data.html', 
+                         specialties=specialties,
                          surgeries=surgeries, 
-                         techniques=techniques,
                          adjustments=adjustments,
                          reasons=reasons,
                          doctors=doctors)
 
 # Master Data Management
+@admin_bp.route('/master-data/specialty', methods=['POST'])
+@login_required
+@admin_required
+def create_specialty():
+    try:
+        name = request.form.get('name', '').strip()
+        if not name:
+            flash('El nombre es obligatorio.', 'error')
+        else:
+            specialty = Specialty(name=name, clinic_id=current_user.clinic_id)
+            db.session.add(specialty)
+            db.session.commit()
+            flash('Especialidad creada exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al crear especialidad: {str(e)}', 'error')
+    return redirect(url_for('admin.master_data'))
+
+@admin_bp.route('/master-data/specialty/<int:specialty_id>/toggle', methods=['POST'])
+@login_required
+@admin_required
+def toggle_specialty(specialty_id):
+    specialty = Specialty.query.get_or_404(specialty_id)
+    if specialty.clinic_id != current_user.clinic_id:
+        flash('No tiene permisos para modificar esta especialidad.', 'error')
+        return redirect(url_for('admin.master_data'))
+    try:
+        specialty.is_active = not specialty.is_active
+        db.session.commit()
+        status = "activada" if specialty.is_active else "desactivada"
+        flash(f'Especialidad {specialty.name} {status} exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al cambiar estado de la especialidad: {str(e)}', 'error')
+    return redirect(url_for('admin.master_data'))
+
 @admin_bp.route('/master-data/surgery', methods=['POST'])
 @login_required
 @admin_required
 def create_surgery():
     try:
         name = request.form.get('name', '').strip()
-        specialty = request.form.get('specialty', '').strip()
-        if not name or not specialty:
-            flash('Nombre y especialidad son obligatorios.', 'error')
+        specialty_id = request.form.get('specialty_id', type=int)
+        base_stay_hours = request.form.get('base_stay_hours', type=int)
+        if not all([name, specialty_id, base_stay_hours]):
+            flash('Nombre, especialidad y horas base son obligatorios.', 'error')
         else:
-            surgery = Surgery(name=name, specialty=specialty, clinic_id=current_user.clinic_id)
+            surgery = Surgery(name=name, specialty_id=specialty_id, base_stay_hours=base_stay_hours, clinic_id=current_user.clinic_id)
             db.session.add(surgery)
             db.session.commit()
             flash('Cirugía creada exitosamente.', 'success')
@@ -306,44 +338,6 @@ def toggle_surgery(surgery_id):
     except Exception as e:
         db.session.rollback()
         flash(f'Error al cambiar estado de la cirugía: {str(e)}', 'error')
-    return redirect(url_for('admin.master_data'))
-
-@admin_bp.route('/master-data/technique', methods=['POST'])
-@login_required
-@admin_required
-def create_technique():
-    try:
-        name = request.form.get('name', '').strip()
-        base_stay_hours = request.form.get('base_stay_hours', type=int)
-        surgery_id = request.form.get('surgery_id', type=int)
-        if not name or not base_stay_hours or not surgery_id:
-            flash('Todos los campos son obligatorios.', 'error')
-        else:
-            technique = Technique(name=name, base_stay_hours=base_stay_hours, surgery_id=surgery_id, clinic_id=current_user.clinic_id)
-            db.session.add(technique)
-            db.session.commit()
-            flash('Técnica creada exitosamente.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error al crear técnica: {str(e)}', 'error')
-    return redirect(url_for('admin.master_data'))
-
-@admin_bp.route('/master-data/technique/<int:technique_id>/toggle', methods=['POST'])
-@login_required
-@admin_required
-def toggle_technique(technique_id):
-    technique = Technique.query.get_or_404(technique_id)
-    if technique.clinic_id != current_user.clinic_id:
-        flash('No tiene permisos para modificar esta técnica.', 'error')
-        return redirect(url_for('admin.master_data'))
-    try:
-        technique.is_active = not technique.is_active
-        db.session.commit()
-        status = "activada" if technique.is_active else "desactivada"
-        flash(f'Técnica {technique.name} {status} exitosamente.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error al cambiar estado de la técnica: {str(e)}', 'error')
     return redirect(url_for('admin.master_data'))
 
 @admin_bp.route('/master-data/adjustment', methods=['POST'])

@@ -94,25 +94,25 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label for="surgery_id" class="block text-sm font-medium text-gray-700 mb-1">
-                        Cirugía <span class="text-red-500">*</span>
+                    <label for="specialty_id" class="block text-sm font-medium text-gray-700 mb-1">
+                        Especialidad <span class="text-red-500">*</span>
                     </label>
-                    <select id="surgery_id" name="surgery_id" required
+                    <select id="specialty_id" name="specialty_id" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
-                        <option value="">Seleccionar cirugía</option>
-                        {% for surgery in surgeries %}
-                        <option value="{{ surgery.id }}">{{ surgery.name }} ({{ surgery.specialty }})</option>
+                        <option value="">Seleccionar especialidad</option>
+                        {% for specialty in specialties %}
+                        <option value="{{ specialty.id }}">{{ specialty.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 
                 <div>
-                    <label for="technique_id" class="block text-sm font-medium text-gray-700 mb-1">
-                        Técnica Quirúrgica <span class="text-red-500">*</span>
+                    <label for="surgery_id" class="block text-sm font-medium text-gray-700 mb-1">
+                        Cirugía <span class="text-red-500">*</span>
                     </label>
-                    <select id="technique_id" name="technique_id" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
-                        <option value="">Primero seleccione una cirugía</option>
+                    <select id="surgery_id" name="surgery_id" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" disabled>
+                        <option value="">Primero seleccione una especialidad</option>
                     </select>
                 </div>
                 
@@ -188,54 +188,54 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const specialtySelect = document.getElementById('specialty_id');
     const surgerySelect = document.getElementById('surgery_id');
-    const techniqueSelect = document.getElementById('technique_id');
     const pavilionEndTimeInput = document.getElementById('pavilion_end_time');
     const adjustmentCheckboxes = document.querySelectorAll('input[name="adjustment_ids"]');
     const fpaPreview = document.getElementById('fpa-preview');
     
-    // Store techniques data
-    const allTechniques = {{ techniques_json | tojson }};
+    const allSurgeries = {{ surgeries_json | tojson }};
     
-    // Update techniques when surgery changes
-    surgerySelect.addEventListener('change', function() {
-        const surgeryId = parseInt(this.value);
-        techniqueSelect.innerHTML = '<option value="">Seleccionar técnica</option>';
+    specialtySelect.addEventListener('change', function() {
+        const specialtyId = parseInt(this.value);
+        surgerySelect.innerHTML = '<option value="">Seleccionar cirugía</option>';
+        surgerySelect.disabled = true;
         
-        if (surgeryId) {
-            const surgeryTechniques = allTechniques.filter(t => t.surgery_id === surgeryId);
-            surgeryTechniques.forEach(technique => {
-                const option = new Option(
-                    `${technique.name} (${technique.base_stay_hours}h base)`, 
-                    technique.id
-                );
-                techniqueSelect.add(option);
-            });
+        if (specialtyId) {
+            const specialtySurgeries = allSurgeries.filter(s => s.specialty_id === specialtyId);
+            if (specialtySurgeries.length > 0) {
+                specialtySurgeries.forEach(surgery => {
+                    const option = new Option(
+                        `${surgery.name} (${surgery.base_stay_hours}h base)`,
+                        surgery.id
+                    );
+                    surgerySelect.add(option);
+                });
+                surgerySelect.disabled = false;
+            } else {
+                surgerySelect.innerHTML = '<option value="">No hay cirugías para esta especialidad</option>';
+            }
         }
         
         updateFpaPreview();
     });
     
-    // Update FPA preview when relevant fields change
-    [techniqueSelect, pavilionEndTimeInput, ...adjustmentCheckboxes].forEach(element => {
+    [surgerySelect, pavilionEndTimeInput, ...adjustmentCheckboxes].forEach(element => {
         element.addEventListener('change', updateFpaPreview);
     });
     
     function updateFpaPreview() {
         const surgeryId = parseInt(surgerySelect.value);
-        const techniqueId = parseInt(techniqueSelect.value);
         const pavilionEndTime = pavilionEndTimeInput.value;
         
-        if (!surgeryId || !techniqueId || !pavilionEndTime) {
+        if (!surgeryId || !pavilionEndTime) {
             fpaPreview.innerHTML = '<p>Complete la información quirúrgica para ver el cálculo estimado de FPA.</p>';
             return;
         }
         
-        // Find selected technique
-        const selectedTechnique = allTechniques.find(t => t.id === techniqueId);
-        if (!selectedTechnique) return;
+        const selectedSurgery = allSurgeries.find(s => s.id === surgeryId);
+        if (!selectedSurgery) return;
         
-        // Calculate adjustment hours
         let adjustmentHours = 0;
         const selectedAdjustments = [];
         adjustmentCheckboxes.forEach(checkbox => {
@@ -248,21 +248,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Calculate FPA
-        const baseHours = selectedTechnique.base_stay_hours;
+        const baseHours = selectedSurgery.base_stay_hours;
         const totalHours = baseHours + adjustmentHours;
         const pavilionEnd = new Date(pavilionEndTime);
         const fpa = new Date(pavilionEnd.getTime() + (totalHours * 60 * 60 * 1000));
         
-        // Calculate overnight stays
         const timeDiff = fpa - pavilionEnd;
         const overnightStays = Math.max(0, Math.ceil(timeDiff / (24 * 60 * 60 * 1000)));
         
-        // Update preview
         let html = `
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <p><strong>Horas base de técnica:</strong> ${baseHours}h</p>
+                    <p><strong>Horas base de cirugía:</strong> ${baseHours}h</p>
                     <p><strong>Ajustes aplicados:</strong> ${adjustmentHours >= 0 ? '+' : ''}${adjustmentHours}h</p>
                     <p><strong>Total de horas:</strong> ${totalHours}h</p>
                 </div>
@@ -290,7 +287,6 @@ document.addEventListener('DOMContentLoaded', function() {
         fpaPreview.innerHTML = html;
     }
     
-    // Set default date to current time
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     pavilionEndTimeInput.value = now.toISOString().slice(0, 16);

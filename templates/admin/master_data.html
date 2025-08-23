@@ -5,19 +5,84 @@
 
 {% block content %}
 <div class="space-y-8">
+    <!-- Specialties Section -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Especialidades</h3>
+        
+        <!-- Add Specialty Form -->
+        <form method="POST" action="{{ url_for('admin.create_specialty') }}" class="mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <input type="text" name="name" placeholder="Nombre de la especialidad" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                </div>
+                <div>
+                    <button type="submit" 
+                            class="w-full bg-primary hover:bg-opacity-90 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        Agregar Especialidad
+                    </button>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Specialties List -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for specialty in specialties %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ specialty.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if specialty.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                {% if specialty.is_active %}Activa{% else %}Inactiva{% endif %}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <form method="POST" action="{{ url_for('admin.toggle_specialty', specialty_id=specialty.id) }}" class="inline">
+                                <button type="submit" class="text-primary hover:text-opacity-80">
+                                    {% if specialty.is_active %}Desactivar{% else %}Activar{% endif %}
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Surgeries Section -->
     <div class="bg-white shadow rounded-lg p-6">
         <h3 class="text-lg font-medium text-gray-900 mb-4">Cirugías</h3>
         
         <!-- Add Surgery Form -->
         <form method="POST" action="{{ url_for('admin.create_surgery') }}" class="mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                     <input type="text" name="name" placeholder="Nombre de la cirugía" required
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
                 </div>
                 <div>
-                    <input type="text" name="specialty" placeholder="Especialidad" required
+                    <select name="specialty_id" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                        <option value="">Seleccionar especialidad</option>
+                        {% for specialty in specialties %}
+                        {% if specialty.is_active %}
+                        <option value="{{ specialty.id }}">{{ specialty.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <input type="number" name="base_stay_hours" placeholder="Horas base de estancia" required min="1"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
                 </div>
                 <div>
@@ -36,7 +101,7 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Especialidad</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Técnicas y Horas Base</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Horas Base</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                     </tr>
@@ -45,18 +110,8 @@
                     {% for surgery in surgeries %}
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ surgery.name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ surgery.specialty }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {% if surgery.techniques %}
-                                <ul class="list-disc list-inside">
-                                {% for tech in surgery.techniques %}
-                                    <li>{{ tech.name }} ({{ tech.base_stay_hours }}h)</li>
-                                {% endfor %}
-                                </ul>
-                            {% else %}
-                                Sin técnicas
-                            {% endif %}
-                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ surgery.specialty.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ surgery.base_stay_hours }}h</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                 {% if surgery.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
@@ -67,79 +122,6 @@
                             <form method="POST" action="{{ url_for('admin.toggle_surgery', surgery_id=surgery.id) }}" class="inline">
                                 <button type="submit" class="text-primary hover:text-opacity-80">
                                     {% if surgery.is_active %}Desactivar{% else %}Activar{% endif %}
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Techniques Section -->
-    <div class="bg-white shadow rounded-lg p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Técnicas Quirúrgicas</h3>
-        
-        <!-- Add Technique Form -->
-        <form method="POST" action="{{ url_for('admin.create_technique') }}" class="mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                    <input type="text" name="name" placeholder="Nombre de la técnica" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
-                </div>
-                <div>
-                    <input type="number" name="base_stay_hours" placeholder="Horas base" required min="1"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
-                </div>
-                <div>
-                    <select name="surgery_id" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
-                        <option value="">Seleccionar cirugía</option>
-                        {% for surgery in surgeries %}
-                        {% if surgery.is_active %}
-                        <option value="{{ surgery.id }}">{{ surgery.name }}</option>
-                        {% endif %}
-                        {% endfor %}
-                    </select>
-                </div>
-                <div>
-                    <button type="submit" 
-                            class="w-full bg-primary hover:bg-opacity-90 text-white px-4 py-2 rounded-md text-sm font-medium">
-                        Agregar Técnica
-                    </button>
-                </div>
-            </div>
-        </form>
-        
-        <!-- Techniques List -->
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Horas Base</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cirugía</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for technique in techniques %}
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ technique.name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ technique.base_stay_hours }}h</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ technique.surgery.name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                {% if technique.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
-                                {% if technique.is_active %}Activa{% else %}Inactiva{% endif %}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <form method="POST" action="{{ url_for('admin.toggle_technique', technique_id=technique.id) }}" class="inline">
-                                <button type="submit" class="text-primary hover:text-opacity-80">
-                                    {% if technique.is_active %}Desactivar{% else %}Activar{% endif %}
                                 </button>
                             </form>
                         </td>
