@@ -79,8 +79,6 @@ def create():
             
             doctor_id = request.form.get('doctor_id')
             doctor_id = int(doctor_id) if doctor_id else None
-            discharge_slot_id = request.form.get('discharge_slot_id')
-            discharge_slot_id = int(discharge_slot_id) if discharge_slot_id else None
             
             adjustment_ids = [int(id) for id in request.form.getlist('adjustment_ids') if id]
             
@@ -129,18 +127,24 @@ def create():
             
             ticket_id = generate_ticket_id()
             
+            # Calculate FPA and determine discharge slot
+            fpa, overnight_stays = Ticket().calculate_fpa(pavilion_end_time, technique.base_stay_hours, adjustment_hours, surgery)
+            
+            discharge_slot = DischargeTimeSlot.query.filter(
+                DischargeTimeSlot.start_time <= fpa.time(),
+                DischargeTimeSlot.end_time >= fpa.time(),
+                DischargeTimeSlot.clinic_id == clinic_id
+            ).first()
+            
             ticket = Ticket(
                 id=ticket_id, patient_id=patient.id, surgery_id=surgery_id, technique_id=technique_id,
-                doctor_id=doctor_id, discharge_slot_id=discharge_slot_id, pavilion_end_time=pavilion_end_time,
-                created_by=current_user.username, clinic_id=clinic_id
+                doctor_id=doctor_id, pavilion_end_time=pavilion_end_time,
+                created_by=current_user.username, clinic_id=clinic_id,
+                initial_fpa=fpa, current_fpa=fpa, overnight_stays=overnight_stays,
+                discharge_slot_id=discharge_slot.id if discharge_slot else None
             )
             
             ticket.set_stay_adjustment_ids(adjustment_ids)
-            
-            fpa, overnight_stays = ticket.calculate_fpa(pavilion_end_time, technique.base_stay_hours, adjustment_hours, surgery)
-            ticket.initial_fpa = fpa
-            ticket.current_fpa = fpa
-            ticket.overnight_stays = overnight_stays
             
             db.session.add(ticket)
             db.session.commit()
@@ -156,7 +160,6 @@ def create():
     techniques = Technique.query.filter_by(is_active=True, clinic_id=clinic_id).all()
     adjustments = StayAdjustmentCriterion.query.filter_by(is_active=True, clinic_id=clinic_id).all()
     doctors = Doctor.query.filter_by(is_active=True, clinic_id=clinic_id).all()
-    discharge_slots = DischargeTimeSlot.query.filter_by(is_active=True, clinic_id=clinic_id).order_by(DischargeTimeSlot.start_time).all()
     
     techniques_json = [t.to_dict() for t in techniques]
     adjustments_json = [a.to_dict() for a in adjustments]
@@ -164,7 +167,7 @@ def create():
     return render_template('tickets/create.html', 
                          surgeries=surgeries, techniques=techniques, techniques_json=techniques_json,
                          adjustments=adjustments, adjustments_json=adjustments_json,
-                         doctors=doctors, discharge_slots=discharge_slots)
+                         doctors=doctors)
 
 @tickets_bp.route('/<ticket_id>')
 @login_required

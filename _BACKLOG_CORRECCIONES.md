@@ -54,17 +54,17 @@ Este backlog se ha generado a partir de la transcripción de las grabaciones de 
 
 ### Lógica de Creación y Cálculo de Tickets
 
-9.  **Renombrar Campo de Fecha de Inicio:**
+9.  **[LISTO] Renombrar Campo de Fecha de Inicio:**
     *   **Tarea:** Cambiar el nombre del campo "Fecha y hora de pabellón".
     *   **Detalle:** Renombrar a "Fecha y hora de admisión", ya que es el punto de partida real para los cálculos de estadía.
 
-10. **Cálculo Automático del Bloque Horario de Alta:**
-    *   **Tarea:** Eliminar la selección manual del "Bloque horario de alta" y hacerlo un campo calculado.
-    *   **Detalle:** El bloque horario debe calcularse automáticamente basándose en la `Fecha y hora de admisión` + `Horas de estadía de la cirugía/técnica` + `Horas de criterios de ajuste`.
+10. **[LISTO] Cálculo Automático del Bloque Horario de Alta:**
+    *   **Tarea:** Eliminar la selección manual del "Bloque horario de alta" y hacerlo un campo calculado que entregarà un bloque de hora de salida, no una hora especifica
+    *   **Detalle:** El bloque horario debe calcularse automáticamente basándose en la `Fecha y hora de admisión` + `Horas de estadía de la cirugía/técnica` + `Horas de criterios de ajuste`. Si por ejemplo el calculo da FPA a las 16:45 horas, el rango de salida será entre 14:45 y 16:45. Osea que se deja como fin del bloque de 2 horas la FPA, pero se debe expresar en rango de horas en la impresion, como ya hemos visto antes
 
-11. **Regla de Negocio para Altas Nocturnas:**
-    *   **Tarea:** Implementar una regla de negocio para gestionar altas calculadas en horarios nocturnos.
-    *   **Detalle:** Si la FPA calculada es posterior a una hora definida (ej. 20:00 hrs), el sistema debe proponer automáticamente el alta para la mañana del día siguiente en un horario hábil.
+11.  **[LISTO] mover ubicacion donde se muetra el càlculo de estadìa mientras se competan los datos del ticket -++:**
+    *   **Tarea:** ajuste estetico a como se muetra al usuario el càlculo de FPA mientras se completa el ticket . 
+    *   **Detalle:**actualmente està al final del sitio y me gustaria que se muetre de forma estàtica en la parte inferior mientras se completa el fomrulario
 
 12. **Información Quirúrgica Detallada:**
     *   **Tarea:** Añadir más detalle a la información quirúrgica en la creación del ticket.
