@@ -98,11 +98,11 @@ def create_ticket_pdf_final(ticket):
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'), ('LEFTPADDING', (0,0), (0,0), 15), ('SPAN', (0,1), (-1,1)),
         ]))
         story.append(mod_fpa_table)
-        story.append(Paragraph(f"<b>Motivo:</b> {last_mod.reason or 'N/A'}", styles['ReasonText']))
+        # story.append(Paragraph(f"<b>Motivo:</b> {last_mod.reason or 'N/A'}", styles['ReasonText'])) # PRIVACY: Reason removed from printed ticket
         story.append(Spacer(1, 0.2*inch))
 
     # --- Signature Section ---
-    signature_box = Table([["Firma Médico Tratante"]], colWidths=[7*inch], rowHeights=[0.8*inch])
+    signature_box = Table([["Firma Médico Tratante y Notas Adicionales"]], colWidths=[7*inch], rowHeights=[1.2*inch]) # Height increased
     signature_box.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), white), ('BOX', (0,0), (-1,-1), 1, light_blue_border),
         ('VALIGN', (0,0), (-1,-1), 'BOTTOM'), ('ALIGN', (0,0), (-1,-1), 'LEFT'),
