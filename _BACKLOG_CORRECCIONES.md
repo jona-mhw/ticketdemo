@@ -42,11 +42,11 @@ Este backlog se ha generado a partir de la transcripción de las grabaciones de 
 
 ### Búsqueda y Filtros
 
-7.  **Búsqueda Flexible por RUT:**
+7.  **[LISTO] Búsqueda Flexible por RUT:**
     *   **Tarea:** Mejorar el campo de búsqueda de RUT para que sea más flexible.
     *   **Detalle:** El sistema debe ser capaz de encontrar a un paciente por su RUT aunque se ingrese sin puntos y sin guion/dígito verificador. El sistema debería formatear la entrada internamente.
 
-8.  **Claridad en Filtros de Fecha:**
+8.  **[LISTO] Claridad en Filtros de Fecha:**
     *   **Tarea:** Etiquetar claramente los filtros de búsqueda por fecha.
     *   **Detalle:** Los campos de filtro de fecha deben especificar a qué fecha se refieren (ej. "Fecha de Cirugía", "Fecha de Alta Proyectada", "Fecha de Admisión").
 

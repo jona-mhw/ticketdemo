@@ -1,4 +1,5 @@
 from models import db, Ticket, Patient, Surgery, Doctor, ActionAudit
+from sqlalchemy import func
 from datetime import datetime, timedelta
 from flask_login import current_user
 import re
@@ -36,15 +37,24 @@ def _build_tickets_query(filters):
         query = query.filter(Ticket.status == filters['status'])
 
     if filters.get('search'):
-        search_query = filters['search']
-        # In SQLite, CONCAT is not available, so we use the + operator.
+        search_query = filters['search'].strip()
+        
+        # Clean search query for RUT search (remove dots and dashes)
+        cleaned_search_rut = re.sub(r'[.-]', '', search_query)
+        
+        # Expression to concatenate patient's first name and paternal last name
         full_name_expr = Patient.primer_nombre + ' ' + Patient.apellido_paterno
         
+        # Expression to clean the RUT column in the database for comparison
+        # This removes dots and dashes from the stored RUT
+        cleaned_db_rut = func.replace(func.replace(Patient.rut, '.', ''), '-', '')
+
         query = query.filter(
             db.or_(
-                Ticket.id.contains(search_query),
-                full_name_expr.contains(search_query),
-                Patient.rut.contains(search_query)
+                Ticket.id.ilike(f"%{search_query}%"),
+                full_name_expr.ilike(f"%{search_query}%"),
+                # Compare the cleaned search query with the cleaned DB RUT
+                cleaned_db_rut.ilike(f"%{cleaned_search_rut}%")
             )
         )
 
