@@ -1,15 +1,20 @@
-from flask import Blueprint, request, make_response
+import json
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_required, current_user
-from models import db, Ticket, DischargeTimeSlot, FpaModification, StayAdjustmentCriterion
-import io
+from models import db, Ticket, Clinic, FpaModification, StayAdjustmentCriterion, StandardizedReason
+from routes.utils import log_action, _build_tickets_query
+from openpyxl import Workbook
+from openpyxl.styles import Font, Border, Side, Alignment
+from openpyxl.utils import get_column_letter
+from io import BytesIO
+from datetime import datetime
 from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Frame, PageTemplate
-from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import Paragraph
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
-import openpyxl
-from .utils import _build_tickets_query
+import pytz
 
 exports_bp = Blueprint('exports', __name__)
 
@@ -177,23 +182,32 @@ def export_excel():
     ws.append(headers)
     
     for ticket in tickets:
-        # Get adjustment criteria names
-        adjustment_ids = ticket.get_stay_adjustment_ids()
-        adjustments = StayAdjustmentCriterion.query.filter(StayAdjustmentCriterion.id.in_(adjustment_ids)).all()
-        adjustment_names = ', '.join([adj.name for adj in adjustments])
+        # Get adjustment criteria names from snapshot
+        adjustment_names = ''
+        if ticket.adjustment_criteria_snapshot:
+            try:
+                adjustments = json.loads(ticket.adjustment_criteria_snapshot)
+                adjustment_names = ', '.join([adj['name'] for adj in adjustments])
+            except (json.JSONDecodeError, TypeError):
+                adjustment_names = 'Error en datos de ajuste'
+        elif ticket.stay_adjustment_ids: # Fallback for old tickets
+            adjustment_ids = ticket.get_stay_adjustment_ids()
+            if adjustment_ids:
+                adjustments_from_db = StayAdjustmentCriterion.query.filter(StayAdjustmentCriterion.id.in_(adjustment_ids)).all()
+                adjustment_names = ', '.join([adj.name for adj in adjustments_from_db])
 
         row = [
             ticket.id,
             ticket.status,
             ticket.patient.rut,
             ticket.patient.full_name,
-            ticket.surgery.specialty.name,
-            ticket.surgery.name,
+            ticket.surgery.specialty.name, # Specialty is not snapshotted
+            ticket.surgery_name_snapshot or ticket.surgery.name, # Use snapshot
             ticket.attending_doctor.name if ticket.attending_doctor else 'N/A',
             ticket.initial_fpa.strftime('%Y-%m-%d %H:%M'),
             f"{ticket.current_fpa.strftime('%Y-%m-%d')} {ticket.discharge_time_slot.name if ticket.discharge_time_slot else ''}",
             ticket.overnight_stays,
-            adjustment_names,
+            adjustment_names, # Use snapshot
             ticket.created_by,
             ticket.created_at.strftime('%Y-%m-%d %H:%M')
         ]

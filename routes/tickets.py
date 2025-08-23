@@ -98,6 +98,7 @@ def create():
             surgery = Surgery.query.filter_by(id=surgery_id, clinic_id=clinic_id).first_or_404()
             
             adjustment_hours = 0
+            adjustments = []
             if adjustment_ids:
                 adjustments = StayAdjustmentCriterion.query.filter(StayAdjustmentCriterion.id.in_(adjustment_ids), StayAdjustmentCriterion.clinic_id == clinic_id).all()
                 adjustment_hours = sum(adj.hours_adjustment for adj in adjustments)
@@ -139,7 +140,13 @@ def create():
                 doctor_id=doctor_id, pavilion_end_time=pavilion_end_time,
                 created_by=current_user.username, clinic_id=clinic_id,
                 initial_fpa=fpa, current_fpa=fpa, overnight_stays=overnight_stays,
-                discharge_slot_id=discharge_slot.id if discharge_slot else None
+                discharge_slot_id=discharge_slot.id if discharge_slot else None,
+                # Snapshot fields
+                surgery_name_snapshot=surgery.name,
+                surgery_base_hours_snapshot=surgery.base_stay_hours,
+                adjustment_criteria_snapshot=json.dumps([
+                    {'id': adj.id, 'name': adj.name, 'hours_adjustment': adj.hours_adjustment} for adj in adjustments
+                ])
             )
             
             ticket.set_stay_adjustment_ids(adjustment_ids)
@@ -175,13 +182,18 @@ def detail(ticket_id):
     ticket = Ticket.query.filter_by(id=ticket_id, clinic_id=current_user.clinic_id).first_or_404()
     
     adjustment_details = []
-    if ticket.get_stay_adjustment_ids():
-        adjustments = StayAdjustmentCriterion.query.filter(
-            StayAdjustmentCriterion.id.in_(ticket.get_stay_adjustment_ids()),
-            StayAdjustmentCriterion.clinic_id == current_user.clinic_id
-        ).all()
-        adjustment_details = adjustments
-    
+    if ticket.adjustment_criteria_snapshot:
+        try:
+            adjustment_details = json.loads(ticket.adjustment_criteria_snapshot)
+        except json.JSONDecodeError:
+            # Fallback for older tickets or corrupted data
+            if ticket.get_stay_adjustment_ids():
+                adjustments = StayAdjustmentCriterion.query.filter(
+                    StayAdjustmentCriterion.id.in_(ticket.get_stay_adjustment_ids()),
+                    StayAdjustmentCriterion.clinic_id == current_user.clinic_id
+                ).all()
+                adjustment_details = [{'name': adj.name, 'hours_adjustment': adj.hours_adjustment} for adj in adjustments]
+
     modification_reasons = StandardizedReason.query.filter_by(category='modification', is_active=True, clinic_id=current_user.clinic_id).all()
     annulment_reasons = StandardizedReason.query.filter_by(category='annulment', is_active=True, clinic_id=current_user.clinic_id).all()
     discharge_time_slots = DischargeTimeSlot.query.filter_by(is_active=True, clinic_id=current_user.clinic_id).order_by(DischargeTimeSlot.start_time).all()

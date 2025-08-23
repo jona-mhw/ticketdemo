@@ -1,4 +1,5 @@
 import click
+import json
 from flask.cli import with_appcontext
 from sqlalchemy import text
 from models import (
@@ -172,6 +173,9 @@ def _seed_tickets_for_clinic(clinic, prefix, created_items, is_production):
         print(f"Skipping ticket creation for {clinic.name} due to missing master data.")
         return
 
+    # Get all adjustment criteria for the clinic once
+    all_adjustments = StayAdjustmentCriterion.query.filter_by(clinic_id=clinic.id).all()
+
     for i in range(num_tickets):
         now = datetime.now()
         patient = random.choice(clinic_data['patients'])
@@ -179,7 +183,13 @@ def _seed_tickets_for_clinic(clinic, prefix, created_items, is_production):
         doctor = random.choice(clinic_data['doctors'])
         pavilion_end_time = now - timedelta(days=random.randint(0, 30), hours=random.randint(0, 23))
         
-        fpa, overnight_stays = Ticket().calculate_fpa(pavilion_end_time, surgery, 0)
+        # Simulate selecting some random adjustment criteria
+        num_adjustments_to_pick = random.randint(0, len(all_adjustments))
+        selected_adjustments = random.sample(all_adjustments, num_adjustments_to_pick)
+        adjustment_hours = sum(adj.hours_adjustment for adj in selected_adjustments)
+        adjustment_ids = [adj.id for adj in selected_adjustments]
+
+        fpa, overnight_stays = Ticket().calculate_fpa(pavilion_end_time, surgery, adjustment_hours)
 
         ticket = Ticket(
             id=f'TH-{prefix.upper()}-{now.year}-{i+1:03d}',
@@ -192,8 +202,15 @@ def _seed_tickets_for_clinic(clinic, prefix, created_items, is_production):
             overnight_stays=overnight_stays,
             created_by=f'{ROLE_ADMIN}_{prefix}',
             clinic_id=clinic.id,
-            status=TICKET_STATUS_VIGENTE
+            status=TICKET_STATUS_VIGENTE,
+            # Populate snapshot fields
+            surgery_name_snapshot=surgery.name,
+            surgery_base_hours_snapshot=surgery.base_stay_hours,
+            adjustment_criteria_snapshot=json.dumps([
+                {'id': adj.id, 'name': adj.name, 'hours_adjustment': adj.hours_adjustment} for adj in selected_adjustments
+            ])
         )
+        ticket.set_stay_adjustment_ids(adjustment_ids)
         
         if i % 7 == 0:
             ticket.status = TICKET_STATUS_ANULADO

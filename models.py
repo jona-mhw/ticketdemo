@@ -194,6 +194,11 @@ class Ticket(db.Model):
     annulled_at = db.Column(db.DateTime, nullable=True)
     annulled_reason = db.Column(db.String(500), nullable=True)
     annulled_by = db.Column(db.String(80), nullable=True)
+
+    # --- Snapshot Fields ---
+    surgery_name_snapshot = db.Column(db.String(200), nullable=True)
+    surgery_base_hours_snapshot = db.Column(db.Integer, nullable=True)
+    adjustment_criteria_snapshot = db.Column(db.Text, nullable=True) # Stores JSON
     
     surgery = db.relationship('Surgery', backref='tickets')
     modifications = db.relationship('FpaModification', backref='ticket', lazy=True, cascade='all, delete-orphan')

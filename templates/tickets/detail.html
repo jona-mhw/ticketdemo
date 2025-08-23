@@ -132,7 +132,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <dt class="text-sm font-medium text-gray-500">Cirugía</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ ticket.surgery.name }}</dd>
+                <dd class="mt-1 text-sm text-gray-900">{{ ticket.surgery_name_snapshot or ticket.surgery.name }}</dd>
                 <dd class="text-xs text-gray-500">{{ ticket.surgery.specialty.name }}</dd>
             </div>
             
