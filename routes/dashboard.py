@@ -16,9 +16,22 @@ def index():
     start_of_week = now - timedelta(days=now.weekday())
     start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
     
+    overdue_tickets_count = Ticket.query.filter(
+        Ticket.status == TICKET_STATUS_VIGENTE,
+        Ticket.current_fpa < now,
+        Ticket.clinic_id == clinic_id
+    ).count()
+
+    active_tickets_count = Ticket.query.filter(
+        Ticket.status == TICKET_STATUS_VIGENTE,
+        Ticket.current_fpa >= now,
+        Ticket.clinic_id == clinic_id
+    ).count()
+    
     kpis = {
-        'active_tickets': Ticket.query.filter_by(status='Vigente', clinic_id=clinic_id).count(),
+        'active_tickets': active_tickets_count,
         'annulled_tickets': Ticket.query.filter_by(status='Anulado', clinic_id=clinic_id).count(),
+        'overdue_tickets': overdue_tickets_count,
         'total_tickets': Ticket.query.filter_by(clinic_id=clinic_id).count(),
         'monthly_tickets': Ticket.query.filter(Ticket.created_at >= start_of_month, Ticket.clinic_id == clinic_id).count(),
         'weekly_tickets': Ticket.query.filter(Ticket.created_at >= start_of_week, Ticket.clinic_id == clinic_id).count()
@@ -32,14 +45,7 @@ def index():
         Ticket.clinic_id == clinic_id
     ).count()
     
-    overdue_tickets = Ticket.query.filter(
-        Ticket.status == TICKET_STATUS_VIGENTE,
-        Ticket.current_fpa < now,
-        Ticket.clinic_id == clinic_id
-    ).count()
-    
     kpis['near_deadline'] = near_deadline
-    kpis['overdue_tickets'] = overdue_tickets
     
     recent_tickets = Ticket.query.filter_by(clinic_id=clinic_id).order_by(Ticket.created_at.desc()).limit(8).all()
     
