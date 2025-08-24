@@ -149,16 +149,9 @@
         <div class="flex flex-col flex-1 overflow-hidden">
             <!-- Top navigation -->
             <header class="bg-white shadow">
-                <div class="max-w-7xl mx-auto flex items-center justify-between h-16">
-                    <div class="flex items-center flex-1">
-                        
-                        <div class="flex-1">
-                            <h2 class="font-semibold text-xl text-gray-800">
-                                {% block page_title %}{% endblock %}
-                            </h2>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-4 pr-4 sm:pr-6 lg:pr-8">
+                <div class="max-w-7xl mx-auto h-16 flex items-center justify-end px-4 sm:px-6 lg:px-8">
+                    <!-- User info and logout: pushed to the right -->
+                    <div class="flex items-center space-x-4">
                         <div class="text-sm text-right">
                             <div class="font-medium text-gray-900">{{ current_user.username }}</div>
                             {% if current_user.clinic %}
@@ -176,6 +169,10 @@
             <!-- Page content -->
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">
                 <div class="container mx-auto px-6 py-8">
+                    <h2 class="text-2xl font-semibold text-gray-800 text-center mb-6">
+                        {% block page_title %}{% endblock %}
+                    </h2>
+
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
                             {% for category, message in messages %}

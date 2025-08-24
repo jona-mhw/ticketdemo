@@ -266,17 +266,24 @@ def init_db_command():
 @with_appcontext
 def reset_db_command():
     """Drops all tables and re-initializes the database."""
-    # Temporarily drop the technique table with cascade to solve dependency
+    # Use raw SQL to drop and recreate the public schema for a clean slate
     with db.engine.connect() as con:
-        con.execute(text('DROP TABLE IF EXISTS technique CASCADE'))
+        # The DB user must have permissions to drop and create schemas.
+        # In Supabase, the default 'postgres' user has this permission.
+        click.echo('Wiping database schema (DROP SCHEMA public CASCADE)...')
+        con.execute(text('DROP SCHEMA public CASCADE;'))
+        con.execute(text('CREATE SCHEMA public;'))
         con.commit()
     
-    db.drop_all()
-    click.echo('Database dropped.')
+    click.echo('Database schema wiped and recreated.')
+    
+    # Now create tables based on current models
     db.create_all()
-    click.echo('Database created.')
+    click.echo('Database tables created.')
+    
+    # Seed the database with fresh data
     seed_db()
-    click.echo('Database has been reset.')
+    click.echo('Database has been reset and seeded.')
 
 def register_commands(app):
     app.cli.add_command(init_db_command)
